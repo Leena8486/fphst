@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# Env files
+.env
+.env.local
+.env.production
+server/.env
+client/.env
+
+# Log files
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output
+client/build/
+client/dist/
+
+# Optional if using Vite
+*.env.*
+!.env.example
