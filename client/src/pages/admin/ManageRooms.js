@@ -4,6 +4,8 @@ import { toast } from 'react-toastify';
 import { AuthContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 export default function ManageRooms() {
   const [rooms, setRooms] = useState([]);
   const [form, setForm] = useState({ number: '', type: 'Single', capacity: 1 });
@@ -14,9 +16,12 @@ export default function ManageRooms() {
 
   const fetchRooms = async () => {
     try {
-      const { data } = await axios.get('/api/admin/rooms', { withCredentials: true });
+      const { data } = await axios.get(`${API_BASE_URL}/admin/rooms`, {
+        withCredentials: true,
+      });
       setRooms(data);
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error('Failed to load rooms');
     }
   };
@@ -29,11 +34,15 @@ export default function ManageRooms() {
     e.preventDefault();
     try {
       if (editingRoom) {
-        await axios.put(`/api/admin/rooms/${editingRoom._id}`, form, { withCredentials: true });
+        await axios.put(`${API_BASE_URL}/admin/rooms/${editingRoom._id}`, form, {
+          withCredentials: true,
+        });
         toast.success('Room updated!');
         setEditingRoom(null);
       } else {
-        await axios.post('/api/admin/rooms', form, { withCredentials: true });
+        await axios.post(`${API_BASE_URL}/admin/rooms`, form, {
+          withCredentials: true,
+        });
         toast.success('Room added!');
       }
       setForm({ number: '', type: 'Single', capacity: 1 });
@@ -51,15 +60,17 @@ export default function ManageRooms() {
   const deleteRoom = async (id) => {
     if (!window.confirm('Are you sure you want to delete this room?')) return;
     try {
-      await axios.delete(`/api/admin/rooms/${id}`, { withCredentials: true });
+      await axios.delete(`${API_BASE_URL}/admin/rooms/${id}`, {
+        withCredentials: true,
+      });
       toast.success('Room deleted');
       fetchRooms();
-    } catch {
+    } catch (err) {
       toast.error('Failed to delete room');
     }
   };
 
-  const filteredRooms = rooms.filter(room =>
+  const filteredRooms = rooms.filter((room) =>
     room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     room.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
