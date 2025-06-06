@@ -30,9 +30,8 @@ export default function AuthPage() {
     setError('');
     setLoading(true);
 
-   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-
-   const url = `${API_BASE_URL}/api/auth/${isLogin ? 'login' : 'register'}`;
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+    const url = `${API_BASE_URL}/auth/${isLogin ? 'login' : 'register'}`;
 
     try {
       const { data } = await axios.post(url, form, {
@@ -41,10 +40,6 @@ export default function AuthPage() {
 
       if (!data || !data.user) {
         throw new Error('Invalid response from server');
-      }
-
-      if (data.token) {
-        localStorage.setItem('token', data.token);
       }
 
       setUser(data.user);
