@@ -18,7 +18,7 @@ const app = express();
 // Middleware
 app.use(cookieParser());
 app.use(cors({
-  origin: 'https://your-netlify-site.netlify.app', 
+  origin: 'https://fphstm.netlify.app/', 
   credentials: true
 }));
 app.use(express.json());
