@@ -21,7 +21,7 @@ export default function ManageRooms() {
       });
       setRooms(data);
     } catch (err) {
-      console.error(err);
+      console.error('[Fetch Rooms Error]', err);
       toast.error('Failed to load rooms');
     }
   };
@@ -48,6 +48,7 @@ export default function ManageRooms() {
       setForm({ number: '', type: 'Single', capacity: 1 });
       fetchRooms();
     } catch (err) {
+      console.error('[Room Save Error]', err);
       toast.error(err.response?.data?.message || 'Failed to save room');
     }
   };
@@ -66,6 +67,7 @@ export default function ManageRooms() {
       toast.success('Room deleted');
       fetchRooms();
     } catch (err) {
+      console.error('[Room Delete Error]', err);
       toast.error('Failed to delete room');
     }
   };
