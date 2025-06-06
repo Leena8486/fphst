@@ -57,8 +57,9 @@ exports.register = async (req, res) => {
     res
       .cookie('token', token, {
         httpOnly: true,
-        sameSite: 'Lax',
-        secure: false,
+        sameSite: 'None',
+        secure: true, // ✅ Required for HTTPS (Netlify + Render)
+        maxAge: 7 * 24 * 60 * 60 * 1000, // Optional: 7 days
       })
       .status(201)
       .json({
@@ -68,7 +69,7 @@ exports.register = async (req, res) => {
           email: account.email,
           role: account.role,
         },
-        token, // ✅ Add token to response
+        token,
       });
   } catch (err) {
     console.error('[REGISTER ERROR]', err);
@@ -108,8 +109,9 @@ exports.login = async (req, res) => {
     res
       .cookie('token', token, {
         httpOnly: true,
-        sameSite: 'Lax',
-        secure: false,
+        sameSite: 'None',
+        secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(200)
       .json({
@@ -119,7 +121,7 @@ exports.login = async (req, res) => {
           email: user.email,
           role: user.role,
         },
-        token, // ✅ Add token to response
+        token,
       });
   } catch (err) {
     console.error('[LOGIN ERROR]', err);
@@ -129,7 +131,13 @@ exports.login = async (req, res) => {
 
 // LOGOUT
 exports.logout = (req, res) => {
-  res.clearCookie('token').json({ message: 'Logged out successfully' });
+  res
+    .clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'None',
+      secure: true,
+    })
+    .json({ message: 'Logged out successfully' });
 };
 
 // GET AUTHENTICATED USER
