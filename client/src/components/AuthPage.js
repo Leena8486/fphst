@@ -33,6 +33,7 @@ export default function AuthPage() {
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
     const url = `${API_BASE_URL}/auth/${isLogin ? 'login' : 'register'}`;
 
+
     try {
       const { data } = await axios.post(url, form, {
         withCredentials: true,
