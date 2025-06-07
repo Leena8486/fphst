@@ -14,6 +14,7 @@ export default function ManageUsers() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', role: 'Resident', roomPreference: 'Single', password: 'Default1234' });
 
   useEffect(() => {
+  console.log("🔥 API Base (in React):", process.env.REACT_APP_API_BASE_URL);
     fetchUsers();
     fetchRooms();
   }, []);
