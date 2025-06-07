@@ -15,29 +15,29 @@ const adminMaintenanceRoutes = require('./routes/adminMaintenanceRoutes');
 
 const app = express();
 
-// Middleware
+// ✅ Middleware
 app.use(cookieParser());
 app.use(cors({
-  origin: 'https://fphstm.netlify.app', 
+  origin: 'https://fphstm.netlify.app', // Adjust based on your frontend domain
   credentials: true
 }));
 app.use(express.json());
 
-
-// Route Mounting
+// ✅ Route Mounting
 app.use('/api/auth', authRoutes);
-app.use('/api/admin/rooms', roomRoutes);
-app.use('/api/admin/users', userRoutes);
-app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/admin/users', userRoutes); // Make sure routes in userRoutes are like router.get('/')
+app.use('/api/admin/rooms', roomRoutes); // Make sure routes in roomRoutes are like router.get('/')
+app.use('/api/admin/maintenance', adminMaintenanceRoutes); // This covers admin-level maintenance
+
+app.use('/api/maintenance', maintenanceRoutes); // Resident or shared
 app.use('/api/payments', paymentRoutes);
 app.use('/api/staff', staffRoutes);
-app.use('/api/residents',residentRoutes);
-app.use('/api/admin', adminMaintenanceRoutes);
+app.use('/api/residents', residentRoutes);
 
-// Test route
-app.get('/', (req, res) => res.send('API running'));
+// ✅ Health check route
+app.get('/', (req, res) => res.send('API running successfully'));
 
-// Start server after DB is connected
+// ✅ Start server after DB is connected
 const startServer = async () => {
   try {
     await connectDB();
@@ -46,7 +46,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}\n`);
 
-      // Print registered routes
+      // Optional: Log all registered routes
       if (app._router) {
         console.log('✅ Registered routes:');
         app._router.stack.forEach((middleware) => {

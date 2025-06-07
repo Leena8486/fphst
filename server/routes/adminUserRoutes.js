@@ -1,3 +1,4 @@
+// routes/adminUserRoutes.js
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
@@ -21,11 +22,11 @@ const {
 } = require('../controllers/adminUserController');
 
 const { protect, protectAdmin } = require('../middleware/authMiddleware');
-const verifyToken = require('../middleware/verifyToken'); // adjust the path if needed
 
+// All routes require authentication
 router.use(protect);
 
-// Admin-only routes
+// ✅ Admin-only routes (will be mounted at /api/admin/users)
 router.get('/', protectAdmin, getAllUsers);
 router.post('/', protectAdmin, createUser);
 router.put('/:id', protectAdmin, updateUser);
@@ -35,21 +36,10 @@ router.put('/:id/assign-room', protectAdmin, assignRoom);
 router.put('/:id/check-in', protectAdmin, checkIn);
 router.put('/:id/check-out', protectAdmin, checkOut);
 
-// Room assignment and check-in/out (new controller)
-router.put('/users/:userId/assign-room', assignRoomToUser);
-router.put('/users/:userId/check-in', checkInUser);
-router.put('/users/:userId/check-out', checkOutUser);
-router.put('/users/:userId/auto-assign', autoAssignRoom);
-// backend/routes/admin.js (example)
-router.put('/users/:id/check-out', verifyToken, async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.params.id, { checkedIn: false });
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ message: 'Checked out successfully' });
-  } catch (err) {
-    res.status(500).json({ message: 'Error checking out' });
-  }
-});
-
+// ✅ Resident-specific routes (mounted at /api/admin/users/residents)
+router.put('/residents/:userId/assign-room', assignRoomToUser);
+router.put('/residents/:userId/check-in', checkInUser);
+router.put('/residents/:userId/check-out', checkOutUser);
+router.put('/residents/:userId/auto-assign', autoAssignRoom);
 
 module.exports = router;
