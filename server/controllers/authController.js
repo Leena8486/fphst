@@ -53,6 +53,7 @@ exports.register = async (req, res) => {
     }
 
     const token = signToken(account);
+console.log('🧁 Sending login cookie...');
 
     res
       .cookie('token', token, {
@@ -105,6 +106,7 @@ exports.login = async (req, res) => {
     }
 
     const token = signToken(user);
+console.log('🧁 Sending login cookie...');
 
     res
       .cookie('token', token, {
