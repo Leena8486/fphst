@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../utils/api'; // ✅ import updated API helper
+import api from '../../utils/api'; // ✅ import updated API helper
 import { toast } from 'react-toastify';
 import { Dialog } from '@headlessui/react';
 import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/solid';
