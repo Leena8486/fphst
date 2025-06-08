@@ -172,7 +172,31 @@ const deletePayment = async (req, res) => {
 };
 
 // Monthly summary
-c
+const getMonthlySummary = async (req, res) => {
+  try {
+    const summary = await Payment.aggregate([
+      { $match: { status: 'Completed' } },
+      {
+        $group: {
+          _id: { $month: '$date' },
+          total: { $sum: '$amount' },
+        },
+      },
+      { $sort: { '_id': 1 } },
+    ]);
+
+    const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const data = summary.map(item => ({
+      month: months[item._id],
+      total: item.total,
+    }));
+
+    res.json(data);
+  } catch (err) {
+    console.error('Monthly summary error:', err);
+    res.status(500).json({ message: 'Failed to fetch summary' });
+  }
+};
 
 // Get my payments (resident)
 const getMyPayments = async (req, res) => {
