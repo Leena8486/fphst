@@ -35,7 +35,8 @@ const AdminPaymentDashboard = () => {
 
   const fetchResidents = useCallback(async () => {
     try {
-      const { data } = await axios.get('/api/admin/users?role=Resident');
+      const { data } = await axios.get('/api/admin/users/residents/list');
+
       setResidents(data || []);
     } catch (error) {
       console.error('Failed to fetch residents:', error);
