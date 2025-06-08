@@ -43,5 +43,6 @@ const protectAdmin = (req, res, next) => {
     res.status(403).json({ message: 'Access denied. Admins only.' });
   }
 };
+console.log("🔍 Incoming token:", req.headers.authorization || req.cookies.token);
 
 module.exports = { protect, protectAdmin };

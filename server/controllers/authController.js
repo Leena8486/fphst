@@ -11,7 +11,7 @@ const getModelByRole = (role) => {
 // Generate JWT token
 const signToken = (user) =>
   jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: '1d',
+    expiresIn: '7d',
   });
 
 // REGISTER
