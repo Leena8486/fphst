@@ -29,7 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin/rooms', require('./routes/roomRoutes'));
 app.use('/api/admin/users', require('./routes/adminUserRoutes'));
 app.use('/api/maintenance', maintenanceRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use('/api/staff', staffRoutes);
 app.use('/api/residents',residentRoutes);
 app.use('/api/admin', adminMaintenanceRoutes);

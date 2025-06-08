@@ -52,7 +52,9 @@ const getPayments = async (req, res) => {
 const createPayment = async (req, res) => {
   try {
     const { resident, category, amount, date, status } = req.body;
+
     if (!resident || !category || !amount || !date) {
+      console.warn('Missing payment fields:', req.body);
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -69,15 +71,20 @@ const createPayment = async (req, res) => {
 
     await payment.save();
 
-    const phone = user.phone.startsWith('+91') ? user.phone : `+91${user.phone}`;
+    console.log('✅ Payment saved:', payment);
 
-    // ✅ Correct SMS Function Call
-    const smsResponse = await sendSMS(phone, amount, category, payment.status);
-    if (!smsResponse || smsResponse.Status !== 'Success') {
-      console.error("❌ SMS Send Failed:", smsResponse?.Details || 'Unknown error');
+    // Send SMS
+    const phone = user.phone.startsWith('+91') ? user.phone : `+91${user.phone}`;
+    try {
+      const smsResponse = await sendSMS(phone, amount, category, payment.status);
+      if (smsResponse?.Status !== 'Success') {
+        console.error('❌ SMS failed:', smsResponse?.Details);
+      }
+    } catch (smsErr) {
+      console.error('❌ SMS error:', smsErr.message);
     }
 
-    // ✅ Email Notification
+    // Send Email
     if (user.email) {
       try {
         await sendEmail({
@@ -85,18 +92,18 @@ const createPayment = async (req, res) => {
           subject: 'Payment Confirmation',
           html: `
             <p>Hello ${user.name},</p>
-            <p>Your payment of <strong>₹${amount}</strong> for <strong>${category}</strong> has been marked as <strong>${payment.status}</strong>.</p>
-            <p>Thank you for your cooperation.</p>
+            <p>Your payment of <strong>₹${amount}</strong> for <strong>${category}</strong> is marked as <strong>${payment.status}</strong>.</p>
           `
         });
       } catch (emailErr) {
-        console.error("❌ Email Send Failed:", emailErr.message);
+        console.error("❌ Email send error:", emailErr.message);
       }
     }
 
-    res.status(201).json(payment);
+    res.status(201).json({ message: 'Payment saved', payment });
+
   } catch (err) {
-    console.error('Error creating payment:', err);
+    console.error('❌ Payment creation error:', err.message);
     res.status(500).json({ message: 'Failed to create payment' });
   }
 };

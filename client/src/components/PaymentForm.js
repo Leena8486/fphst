@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const PaymentForm = ({ payment, onClose, onSave, residents }) => {
+// Optional: Set your backend API base URL
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
+
+const PaymentForm = ({ payment, onClose, onSave, residents = [] }) => {
   const [formData, setFormData] = useState({
     resident: '',
     category: '',
@@ -31,21 +34,38 @@ const PaymentForm = ({ payment, onClose, onSave, residents }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation
+    if (!formData.resident || !formData.category || !formData.amount || !formData.date) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
     try {
       const payload = {
         ...formData,
         amount: parseFloat(formData.amount),
       };
+
       if (payment?._id) {
-        await axios.put(`/api/payments/${payment._id}`, payload);
+        await axios.put(
+          `${API_BASE_URL}/api/payments/${payment._id}`,
+          payload,
+          { withCredentials: true }
+        );
       } else {
-        await axios.post('/api/payments', payload);
+        await axios.post(
+          `${API_BASE_URL}/api/payments`,
+          payload,
+          { withCredentials: true }
+        );
       }
-      onSave();
-      onClose();
+
+      onSave();    // Trigger data refresh
+      onClose();   // Close modal
     } catch (error) {
-      console.error('Error saving payment:', error);
-      alert('Failed to save payment. Check the console for more info.');
+      console.error('Error saving payment:', error.response?.data || error.message);
+      alert('Failed to save payment. Please try again.');
     }
   };
 
@@ -55,6 +75,7 @@ const PaymentForm = ({ payment, onClose, onSave, residents }) => {
         <h2 className="text-xl font-bold mb-4">
           {payment?._id ? (isStatusOnly ? 'Update Payment Status' : 'Edit Payment') : 'Add Payment'}
         </h2>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isStatusOnly && (
             <>
@@ -92,7 +113,6 @@ const PaymentForm = ({ payment, onClose, onSave, residents }) => {
                   <option value="Previous Balance">Previous Balance</option>
                   <option value="Others">Others</option>
                 </select>
-
               </div>
 
               <div>
