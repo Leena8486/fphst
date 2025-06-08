@@ -1,73 +1,75 @@
-require('dotenv').config();
 const express = require('express');
-const connectDB = require('./config/db');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
+const router = express.Router();
+const User = require('../models/User');
 
-const authRoutes = require('./routes/authRoutes');
-const roomRoutes = require('./routes/roomRoutes');
-const userRoutes = require('./routes/adminUserRoutes');
-const maintenanceRoutes = require('./routes/maintenanceRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
-const staffRoutes = require('./routes/staffRoutes');
-const residentRoutes = require('./routes/residentRoutes');
-const adminMaintenanceRoutes = require('./routes/adminMaintenanceRoutes');
+const {
+  assignRoomToUser,
+  checkInUser,
+  checkOutUser,
+  autoAssignRoom,
+} = require('../controllers/userController');
 
-const app = express();
+const {
+  createUser,
+  getAllUsers,
+  updateUser,
+  deleteUser,
+  updateUserRole,
+  assignRoom,
+  checkIn,
+  checkOut,
+} = require('../controllers/adminUserController');
 
-// Middleware
-app.use(cookieParser());
-app.use(cors({
-  origin: 'https://fphstm.netlify.app', 
-  credentials: true
-}));
-app.use(express.json());
+const { protect, protectAdmin } = require('../middleware/authMiddleware');
 
+// ✅ Middleware to protect all routes
+router.use(protect);
 
-// Route Mounting
-app.use('/api/auth', authRoutes);
-app.use('/api/admin/rooms', require('./routes/roomRoutes'));
-app.use('/api/admin/users', require('./routes/adminUserRoutes'));
-app.use('/api/maintenance', maintenanceRoutes);
-app.use("/api/payments", require("./routes/paymentRoutes"));
-app.use('/api/staff', staffRoutes);
-app.use('/api/residents',residentRoutes);
-app.use('/api/admin', adminMaintenanceRoutes);
+// ✅ PLACE STATIC ROUTES BEFORE DYNAMIC ONES
 
-// Test route
-app.get('/', (req, res) => res.send('API running'));
-
-// Start server after DB is connected
-const startServer = async () => {
+// 🔹 GET: List of residents (used for payments dropdown, etc.)
+router.get('/residents/list', protectAdmin, async (req, res) => {
   try {
-    await connectDB();
-
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`✅ Server running on port ${PORT}\n`);
-
-      // Print registered routes
-      if (app._router) {
-        console.log('✅ Registered routes:');
-        app._router.stack.forEach((middleware) => {
-          if (middleware.route) {
-            console.log(`  ${Object.keys(middleware.route.methods).join(',').toUpperCase()} ${middleware.route.path}`);
-          } else if (middleware.name === 'router') {
-            middleware.handle.stack.forEach((handler) => {
-              if (handler.route) {
-                console.log(`  ${Object.keys(handler.route.methods).join(',').toUpperCase()} ${handler.route.path}`);
-              }
-            });
-          }
-        });
-      } else {
-        console.log('⚠️ No routes registered yet');
-      }
-    });
+    const residents = await User.find({ role: 'Resident' }).select('_id name email phone');
+    res.json(residents);
   } catch (err) {
-    console.error('❌ Error starting server:', err);
-    process.exit(1);
+    console.error('Error fetching residents list:', err);
+    res.status(500).json({ message: 'Failed to fetch resident list' });
   }
-};
+});
 
-startServer();
+// 🔹 GET: All users
+router.get('/', protectAdmin, getAllUsers);
+
+// 🔹 POST: Create a new user
+router.post('/', protectAdmin, createUser);
+
+// 🔹 PUT: Update a user
+router.put('/:id', protectAdmin, updateUser);
+
+// 🔹 DELETE: Delete a user
+router.delete('/:id', protectAdmin, deleteUser);
+
+// 🔹 PUT: Update user role (Resident ↔ Staff)
+router.put('/:id/role', protectAdmin, updateUserRole);
+
+// 🔹 PUT: Assign room manually
+router.put('/:id/assign-room', protectAdmin, assignRoom);
+
+// 🔹 PUT: Check-in user manually
+router.put('/:id/check-in', protectAdmin, checkIn);
+
+// 🔹 PUT: Check-out user manually
+router.put('/:id/check-out', protectAdmin, checkOut);
+
+
+// ✅ Public/General Room Assignment Endpoints (if needed for internal logic/UI actions)
+
+router.put('/:userId/assign-room', assignRoomToUser);
+router.put('/:userId/check-in', checkInUser);
+router.put('/:userId/check-out', checkOutUser);
+router.put('/:userId/auto-assign', autoAssignRoom);
+
+console.log('✅ adminUserRoutes loaded');
+
+module.exports = router;
