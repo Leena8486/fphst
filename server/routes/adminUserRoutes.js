@@ -26,7 +26,7 @@ const { protect, protectAdmin } = require('../middleware/authMiddleware');
 router.use(protect);
 
 // ✅ Admin-only User Management Routes (for /api/admin/users)
-router.get('/', protectAdmin, getAllUsers);
+router.get('/users', protectAdmin, getAllUsers);
 router.post('/', protectAdmin, createUser);
 router.put('/:id', protectAdmin, updateUser);
 router.delete('/:id', protectAdmin, deleteUser);
@@ -42,5 +42,16 @@ router.put('/:userId/check-out', checkOutUser);
 router.put('/:userId/auto-assign', autoAssignRoom);
 
 console.log('✅ adminUserRoutes loaded');
+// ✅ Additional route ONLY for fetching residents (for payment dropdown)
+router.get('/residents/list', protectAdmin, async (req, res) => {
+  try {
+    const residents = await User.find({ role: 'Resident' }).select('_id name email phone');
+    res.json(residents);
+  } catch (err) {
+    console.error('Error fetching residents list:', err);
+    res.status(500).json({ message: 'Failed to fetch resident list' });
+  }
+});
+
 
 module.exports = router;
