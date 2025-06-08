@@ -10,19 +10,29 @@ const ResidentProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          setError("No token found. Please login.");
+          return;
+        }
+
         const res = await axios.get('https://fphst.onrender.com/api/residents/profile', {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
             'Cache-Control': 'no-cache',
             Pragma: 'no-cache',
-          },
+          }
         });
+
         setProfile(res.data);
       } catch (err) {
+        console.error("Profile fetch error:", err);
         setError(err.response?.data?.message || 'Failed to fetch profile');
       }
     };
+
     fetchProfile();
   }, []);
 
