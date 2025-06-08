@@ -24,27 +24,39 @@ const AdminPaymentDashboard = () => {
   const canUpdateStatus = user?.role === 'Staff';
 
   const fetchPayments = useCallback(async () => {
-    try {
-      const { data } = await axios.get(
-        `${API_BASE_URL}/payments?page=${currentPage}&limit=${limit}&category=${filter.category}&resident=${filter.resident}&date=${filter.date}`
-      );
-      setPayments(data.data || []);
-      setTotalPages(Math.ceil((data.total || 0) / limit));
-    } catch (error) {
-      console.error('Failed to fetch payments:', error);
-    }
-  }, [currentPage, filter.category, filter.resident, filter.date]);
+  try {
+    const token = localStorage.getItem('token');
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get(
+      `${API_BASE_URL}/payments?page=${currentPage}&limit=${limit}&category=${filter.category}&resident=${filter.resident}&date=${filter.date}`,
+      config
+    );
+    setPayments(data.data || []);
+    setTotalPages(Math.ceil((data.total || 0) / limit));
+  } catch (error) {
+    console.error('Failed to fetch payments:', error);
+  }
+}, [currentPage, filter.category, filter.resident, filter.date]);
 
-  const fetchResidents = useCallback(async () => {
-    try {
-      const { data } = await axios.get(`${API_BASE_URL}/admin/users/residents/list`);
-      setResidents(data || []);
-    } catch (error) {
-      console.error('Failed to fetch residents:', error);
-    }
-  }, []);
-
-  useEffect(() => {
+const fetchResidents = useCallback(async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get(`${API_BASE_URL}/admin/users/residents/list`, config);
+    setResidents(data || []);
+  } catch (error) {
+    console.error('Failed to fetch residents:', error);
+  }
+}, []);
+ useEffect(() => {
     fetchPayments();
     fetchResidents();
   }, [fetchPayments, fetchResidents]);
