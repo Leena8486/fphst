@@ -24,39 +24,30 @@ const AdminPaymentDashboard = () => {
   const canUpdateStatus = user?.role === 'Staff';
 
   const fetchPayments = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    const { data } = await axios.get(
-      `${API_BASE_URL}/payments?page=${currentPage}&limit=${limit}&category=${filter.category}&resident=${filter.resident}&date=${filter.date}`,
-      config
-    );
-    setPayments(data.data || []);
-    setTotalPages(Math.ceil((data.total || 0) / limit));
-  } catch (error) {
-    console.error('Failed to fetch payments:', error);
-  }
-}, [currentPage, filter.category, filter.resident, filter.date]);
+    try {
+      const { data } = await axios.get(
+        `${API_BASE_URL}/payments?page=${currentPage}&limit=${limit}&category=${filter.category}&resident=${filter.resident}&date=${filter.date}`,
+        { withCredentials: true }
+      );
+      setPayments(data.data || []);
+      setTotalPages(Math.ceil((data.total || 0) / limit));
+    } catch (error) {
+      console.error('Failed to fetch payments:', error);
+    }
+  }, [currentPage, filter.category, filter.resident, filter.date]);
 
-const fetchResidents = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    const { data } = await axios.get(`${API_BASE_URL}/admin/users/residents/list`, config);
-    setResidents(data || []);
-  } catch (error) {
-    console.error('Failed to fetch residents:', error);
-  }
-}, []);
- useEffect(() => {
+  const fetchResidents = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/admin/users/residents/list`, {
+        withCredentials: true,
+      });
+      setResidents(data || []);
+    } catch (error) {
+      console.error('Failed to fetch residents:', error);
+    }
+  }, []);
+
+  useEffect(() => {
     fetchPayments();
     fetchResidents();
   }, [fetchPayments, fetchResidents]);
@@ -70,7 +61,9 @@ const fetchResidents = useCallback(async () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this payment?')) {
       try {
-        await axios.delete(`${API_BASE_URL}/payments/${id}`);
+        await axios.delete(`${API_BASE_URL}/payments/${id}`, {
+          withCredentials: true,
+        });
         fetchPayments();
       } catch (error) {
         console.error('Failed to delete payment:', error);
