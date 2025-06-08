@@ -10,9 +10,10 @@ const ResidentProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/residents/profile', {
-          withCredentials: true,
+        const token = localStorage.getItem('token');
+        const res = await axios.get('https://fphst.onrender.com/api/residents/profile', {
           headers: {
+            Authorization: `Bearer ${token}`,
             'Cache-Control': 'no-cache',
             Pragma: 'no-cache',
           },
@@ -26,7 +27,6 @@ const ResidentProfile = () => {
   }, []);
 
   if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
-
   if (!profile) return <div className="p-4 text-center">Loading...</div>;
 
   return (
@@ -72,4 +72,3 @@ const ResidentProfile = () => {
 };
 
 export default ResidentProfile;
-
