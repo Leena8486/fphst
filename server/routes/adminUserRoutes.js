@@ -26,7 +26,7 @@ const { protect, protectAdmin } = require('../middleware/authMiddleware');
 router.use(protect);
 
 // ✅ Admin-only User Management Routes (for /api/admin/users)
-router.get('/users', protectAdmin, getAllUsers);
+router.get('/', protectAdmin, getAllUsers);
 router.post('/', protectAdmin, createUser);
 router.put('/:id', protectAdmin, updateUser);
 router.delete('/:id', protectAdmin, deleteUser);
