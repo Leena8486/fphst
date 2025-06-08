@@ -2,10 +2,17 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Staff = require('../models/Staff');
 
-// ✅ Only declare once
 const protect = async (req, res, next) => {
-  const token = req.cookies.token;
-  console.log('🔐 Token from cookie:', token); // ✅ Add this
+  let token;
+
+  // ✅ Check Authorization header first
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  } 
+  // ✅ Fall back to cookie
+  else if (req.cookies.token) {
+    token = req.cookies.token;
+  }
 
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
@@ -13,6 +20,7 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     let user = await User.findById(decoded.id).select('-password');
     if (!user) user = await Staff.findById(decoded.id).select('-password');
 
@@ -27,6 +35,7 @@ const protect = async (req, res, next) => {
     return res.status(403).json({ message: 'Invalid token' });
   }
 };
+
 const protectAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'Admin') {
     next();
@@ -35,5 +44,4 @@ const protectAdmin = (req, res, next) => {
   }
 };
 
-// ✅ Export just once
 module.exports = { protect, protectAdmin };
