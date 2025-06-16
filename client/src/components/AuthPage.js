@@ -33,17 +33,20 @@ export default function AuthPage() {
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
     const url = `${API_BASE_URL}/auth/${isLogin ? 'login' : 'register'}`;
 
-
     try {
       const { data } = await axios.post(url, form, {
         withCredentials: true,
       });
 
-      if (!data || !data.user) {
+      if (!data || !data.user || !data.token) {
         throw new Error('Invalid response from server');
       }
 
+      // ✅ Save token and user in localStorage
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
+
       const role = data.user.role?.toLowerCase();
 
       if (role === 'admin') navigate('/admin/dashboard');
