@@ -53,61 +53,39 @@ const createPayment = async (req, res) => {
   try {
     const { resident, category, amount, date, status } = req.body;
 
+    // ✅ LOG the incoming request data
+    console.log('📥 Incoming payment:', { resident, category, amount, date, status });
+
+    // ✅ Check for missing fields
     if (!resident || !category || !amount || !date) {
-      console.warn('Missing payment fields:', req.body);
       return res.status(400).json({ message: 'All fields are required' });
     }
 
+    // ✅ Ensure resident exists
     const user = await User.findById(resident);
-    if (!user) return res.status(404).json({ message: 'Resident not found' });
+    if (!user) {
+      console.log('❌ Resident not found with ID:', resident);
+      return res.status(404).json({ message: 'Resident not found' });
+    }
 
+    // ✅ Create and save the payment
     const payment = new Payment({
       resident,
       category,
       amount,
       date,
-      status: status || 'Pending',
+      status,
     });
 
     await payment.save();
 
     console.log('✅ Payment saved:', payment);
-
-    // Send SMS
-    const phone = user.phone.startsWith('+91') ? user.phone : `+91${user.phone}`;
-    try {
-      const smsResponse = await sendSMS(phone, amount, category, payment.status);
-      if (smsResponse?.Status !== 'Success') {
-        console.error('❌ SMS failed:', smsResponse?.Details);
-      }
-    } catch (smsErr) {
-      console.error('❌ SMS error:', smsErr.message);
-    }
-
-    // Send Email
-    if (user.email) {
-      try {
-        await sendEmail({
-          to: user.email,
-          subject: 'Payment Confirmation',
-          html: `
-            <p>Hello ${user.name},</p>
-            <p>Your payment of <strong>₹${amount}</strong> for <strong>${category}</strong> is marked as <strong>${payment.status}</strong>.</p>
-          `
-        });
-      } catch (emailErr) {
-        console.error("❌ Email send error:", emailErr.message);
-      }
-    }
-
-    res.status(201).json({ message: 'Payment saved', payment });
-
+    res.status(201).json(payment);
   } catch (err) {
     console.error('❌ Payment creation error:', err.message);
-    res.status(500).json({ message: 'Failed to create payment' });
+    res.status(500).json({ message: 'Failed to create payment', error: err.message });
   }
 };
-
 // Update Payment
 const updatePayment = async (req, res) => {
   try {
