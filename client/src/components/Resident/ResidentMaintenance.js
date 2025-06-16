@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../../utils/api';
 
 const ResidentMaintenance = () => {
   const [requests, setRequests] = useState([]);
   const [form, setForm] = useState({ title: '', description: '' });
   const [showRequests, setShowRequests] = useState(false);
-  const navigate = useNavigate(); // ✅ React Router hook
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (showRequests) fetchRequests();
@@ -14,9 +14,7 @@ const ResidentMaintenance = () => {
 
   const fetchRequests = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/residents/maintenance', {
-        withCredentials: true,
-      });
+      const res = await api.get('/residents/maintenance');
       const sorted = res.data.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
@@ -29,9 +27,7 @@ const ResidentMaintenance = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/residents/maintenance', form, {
-        withCredentials: true,
-      });
+      await api.post('/residents/maintenance', form);
       setForm({ title: '', description: '' });
       if (showRequests) fetchRequests();
     } catch (error) {
@@ -64,16 +60,14 @@ const ResidentMaintenance = () => {
 
   return (
     <div style={{ maxWidth: 900, margin: '2rem auto' }}>
-      {/* ✅ Navigate to Dashboard on click */}
       <button
-          onClick={() => navigate('/resident/dashboard')}
-          className="mb-8 inline-block text-indigo-600 font-semibold hover:text-indigo-900 transition"
-        >
-          ← Back to Dashboard
-        </button>
+        onClick={() => navigate('/resident/dashboard')}
+        className="mb-8 inline-block text-indigo-600 font-semibold hover:text-indigo-900 transition"
+      >
+        ← Back to Dashboard
+      </button>
 
       <div style={{ display: 'flex', gap: '2rem' }}>
-        {/* Form */}
         <section
           style={{
             flex: 1,
@@ -86,9 +80,14 @@ const ResidentMaintenance = () => {
           <h2 style={{ marginBottom: '1.5rem', color: '#2c3e50' }}>
             Submit a Maintenance Request
           </h2>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          >
             <div>
-              <label style={{ fontWeight: '600', marginBottom: '6px', display: 'block' }}>Issue Title</label>
+              <label style={{ fontWeight: '600', marginBottom: '6px', display: 'block' }}>
+                Issue Title
+              </label>
               <input
                 type="text"
                 placeholder="e.g. Water leakage"
@@ -105,7 +104,9 @@ const ResidentMaintenance = () => {
               />
             </div>
             <div>
-              <label style={{ fontWeight: '600', marginBottom: '6px', display: 'block' }}>Description</label>
+              <label style={{ fontWeight: '600', marginBottom: '6px', display: 'block' }}>
+                Description
+              </label>
               <textarea
                 placeholder="Describe the problem..."
                 value={form.description}
@@ -139,7 +140,6 @@ const ResidentMaintenance = () => {
           </form>
         </section>
 
-        {/* Table */}
         <section style={{ flex: 1 }}>
           <button
             onClick={() => setShowRequests(!showRequests)}
@@ -196,4 +196,3 @@ const ResidentMaintenance = () => {
 };
 
 export default ResidentMaintenance;
-

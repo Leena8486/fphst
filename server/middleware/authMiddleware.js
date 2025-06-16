@@ -4,7 +4,7 @@ const Staff = require('../models/Staff');
 
 const protect = async (req, res, next) => {
   let token;
-
+console.log("🔍 Incoming token:", req.headers.authorization || req.cookies.token);
   // ✅ Check Authorization header first
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
@@ -43,6 +43,6 @@ const protectAdmin = (req, res, next) => {
     res.status(403).json({ message: 'Access denied. Admins only.' });
   }
 };
-console.log("🔍 Incoming token:", req.headers.authorization || req.cookies.token);
+
 
 module.exports = { protect, protectAdmin };
