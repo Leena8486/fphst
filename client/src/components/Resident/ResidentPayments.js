@@ -1,20 +1,29 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { api, getAuthHeaders } from '../../utils/api'; // ✅ adjust if needed
 
 const ResidentPayments = () => {
   const [payments, setPayments] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get('http://localhost:5000/api/residents/payments', {
-        withCredentials: true,
-      })
-      .then((res) => {
+    const fetchPayments = async () => {
+      try {
+        const res = await api.get('/residents/payments', {
+          headers: getAuthHeaders(), // ✅ sends Bearer token
+        });
         setPayments(res.data);
-      });
-  }, []);
+      } catch (error) {
+        console.error('❌ Error fetching payments:', error.response?.data?.message || error.message);
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          alert("Please login as a resident to view payments.");
+          navigate('/login');
+        }
+      }
+    };
+
+    fetchPayments();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-600 p-8 flex flex-col items-center">

@@ -5,6 +5,10 @@ const Staff = require('../models/Staff');
 const protect = async (req, res, next) => {
   let token;
 console.log("🔍 Incoming token:", req.headers.authorization || req.cookies.token);
+console.log("🔍 Incoming headers:", req.headers);
+console.log("🔍 Incoming cookies:", req.cookies);
+console.log("🔍 Authorization header:", req.headers.authorization);
+
   // ✅ Check Authorization header first
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
