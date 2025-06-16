@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api, getAuthHeaders } from '../utils/api'; // ✅ Import your centralized API setup
 
 const PaymentForm = ({ payment, onClose, onSave, residents }) => {
   const [formData, setFormData] = useState({
@@ -36,16 +36,24 @@ const PaymentForm = ({ payment, onClose, onSave, residents }) => {
         ...formData,
         amount: parseFloat(formData.amount),
       };
+
       if (payment?._id) {
-        await axios.put(`/api/payments/${payment._id}`, payload);
+        // ✅ Update payment
+        await api.put(`/payments/${payment._id}`, payload, {
+          headers: getAuthHeaders(),
+        });
       } else {
-        await axios.post('/api/payments', payload);
+        // ✅ Create new payment
+        await api.post('/payments', payload, {
+          headers: getAuthHeaders(),
+        });
       }
+
       onSave();
       onClose();
     } catch (error) {
-      console.error('Error saving payment:', error);
-      alert('Failed to save payment. Check the console for more info.');
+      console.error('❌ Error saving payment:', error.response?.data?.message || error.message);
+      alert('Failed to save payment. Please check your login or role.');
     }
   };
 
@@ -53,7 +61,11 @@ const PaymentForm = ({ payment, onClose, onSave, residents }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">
-          {payment?._id ? (isStatusOnly ? 'Update Payment Status' : 'Edit Payment') : 'Add Payment'}
+          {payment?._id
+            ? isStatusOnly
+              ? 'Update Payment Status'
+              : 'Edit Payment'
+            : 'Add Payment'}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isStatusOnly && (
@@ -92,7 +104,6 @@ const PaymentForm = ({ payment, onClose, onSave, residents }) => {
                   <option value="Previous Balance">Previous Balance</option>
                   <option value="Others">Others</option>
                 </select>
-
               </div>
 
               <div>

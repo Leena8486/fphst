@@ -50,7 +50,7 @@ export default function Sidebar({ role }) {
             <span role="img" aria-label="staff">🛠</span> Staff Panel
           </Link>
 
-          <Link to="/resident" className={linkClasses}>
+          <Link to="/login" className={linkClasses}>
             <span role="img" aria-label="resident">👤</span> Resident Panel
           </Link>
         </nav>
