@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, getAuthHeaders } from '../utils/api';
+import { api, getAuthHeaders } from '../utils/api'; // Adjust path if needed
 
 const PaymentForm = ({ residents }) => {
   const [formData, setFormData] = useState({
@@ -9,9 +9,10 @@ const PaymentForm = ({ residents }) => {
     status: 'Pending',
     date: new Date().toISOString().slice(0, 10),
   });
+
   const [payments, setPayments] = useState([]);
-  const [showListOnly, setShowListOnly] = useState(true); // 🔁 Toggle
   const [editingPayment, setEditingPayment] = useState(null);
+  const [showListOnly, setShowListOnly] = useState(true); // 👈 toggle state
 
   const fetchPayments = async () => {
     try {
@@ -20,7 +21,7 @@ const PaymentForm = ({ residents }) => {
       });
       setPayments(res.data);
     } catch (error) {
-      console.error('❌ Failed to fetch payments:', error);
+      console.error('❌ Failed to fetch payments:', error.message);
     }
   };
 
@@ -35,11 +36,7 @@ const PaymentForm = ({ residents }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const payload = {
-      ...formData,
-      amount: parseFloat(formData.amount),
-    };
+    const payload = { ...formData, amount: parseFloat(formData.amount) };
 
     try {
       if (editingPayment?._id) {
@@ -54,14 +51,27 @@ const PaymentForm = ({ residents }) => {
 
       fetchPayments();
       resetForm();
-      setShowListOnly(true); // Switch back to list
-    } catch (err) {
-      console.error('❌ Error saving payment:', err.response?.data?.message || err.message);
-      alert('Error saving payment. Check all fields.');
+      setShowListOnly(true);
+    } catch (error) {
+      console.error('❌ Error saving payment:', error.response?.data?.message || error.message);
+      alert('Error saving payment. Please check all fields.');
     }
   };
 
+  const handleEdit = (payment) => {
+    setEditingPayment(payment);
+    setFormData({
+      resident: payment.resident?._id || payment.resident,
+      category: payment.category,
+      amount: payment.amount,
+      status: payment.status,
+      date: new Date(payment.date).toISOString().slice(0, 10),
+    });
+    setShowListOnly(false);
+  };
+
   const resetForm = () => {
+    setEditingPayment(null);
     setFormData({
       resident: '',
       category: '',
@@ -69,40 +79,26 @@ const PaymentForm = ({ residents }) => {
       status: 'Pending',
       date: new Date().toISOString().slice(0, 10),
     });
-    setEditingPayment(null);
-  };
-
-  const handleEdit = (payment) => {
-    setEditingPayment(payment);
-    setFormData({
-      resident: payment.resident?._id || payment.resident || '',
-      category: payment.category || '',
-      amount: payment.amount || '',
-      status: payment.status || 'Pending',
-      date: new Date(payment.date).toISOString().slice(0, 10),
-    });
-    setShowListOnly(false);
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-indigo-800">
           {showListOnly ? 'Payment List' : editingPayment ? 'Edit Payment' : 'Add Payment'}
         </h2>
         <button
           onClick={() => {
-            setShowListOnly(!showListOnly);
             resetForm();
+            setShowListOnly(!showListOnly);
           }}
           className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
         >
-          {showListOnly ? '➕ Add Payment' : '📄 Show Payment List'}
+          {showListOnly ? '➕ Add Payment' : '📄 Show Payments'}
         </button>
       </div>
 
       {showListOnly ? (
-        // ✅ Payment List
         <div className="overflow-x-auto bg-white rounded shadow">
           <table className="w-full table-auto border">
             <thead className="bg-indigo-100">
@@ -157,7 +153,6 @@ const PaymentForm = ({ residents }) => {
           </table>
         </div>
       ) : (
-        // ✅ Payment Form
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto space-y-4">
           <div>
             <label className="block font-medium">Resident</label>
