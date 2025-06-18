@@ -21,6 +21,33 @@ const getResidentProfile = async (req, res) => {
   }
 };
 
+// ✅ Update resident profile
+const updateResidentProfile = async (req, res) => {
+  try {
+    const resident = await User.findById(req.user.id);
+    if (!resident || resident.role !== 'Resident') {
+      return res.status(404).json({ message: 'Resident not found' });
+    }
+
+    resident.name = req.body.name || resident.name;
+    resident.phone = req.body.phone || resident.phone;
+    resident.roomNumber = req.body.roomNumber || resident.roomNumber;
+
+    const updated = await resident.save();
+    res.json({
+      _id: updated._id,
+      name: updated.name,
+      email: updated.email,
+      phone: updated.phone,
+      roomNumber: updated.roomNumber,
+      role: updated.role,
+    });
+  } catch (error) {
+    console.error('❌ Error updating resident profile:', error);
+    res.status(500).json({ message: 'Failed to update profile' });
+  }
+};
+
 // ✅ Get resident maintenance requests
 const getResidentMaintenance = async (req, res) => {
   try {
@@ -67,29 +94,11 @@ const getResidentPayments = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch payments' });
   }
 };
-const updateResidentProfile = async (req, res) => {
-  const resident = await Resident.findById(req.user.id);
-  if (!resident) return res.status(404).json({ message: 'Resident not found' });
-
-  resident.name = req.body.name || resident.name;
-  resident.phone = req.body.phone || resident.phone;
-  resident.roomNumber = req.body.roomNumber || resident.roomNumber;
-
-  const updated = await resident.save();
-  res.json({
-    _id: updated._id,
-    name: updated.name,
-    email: updated.email,
-    phone: updated.phone,
-    roomNumber: updated.roomNumber,
-    role: updated.role,
-  });
-};
 
 module.exports = {
   getResidentProfile,
+  updateResidentProfile,
   getResidentMaintenance,
   createMaintenance,
   getResidentPayments,
-  updateResidentProfile,
 };

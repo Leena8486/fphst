@@ -6,19 +6,26 @@ const Payment = require('../models/Payment');
 
 const {
   getResidentProfile,
+  updateResidentProfile,
   getResidentMaintenance,
   createMaintenance,
   getResidentPayments,
 } = require('../controllers/residentController');
 
-router.use(protect); // protect all routes
+// Protect all routes
+router.use(protect);
 
-router.get('/profile', getResidentProfile);
+// ✅ Proper route for GET and PUT /profile
+router
+  .route('/profile')
+  .get(getResidentProfile)
+  .put(updateResidentProfile);
+
 router.get('/maintenance', getResidentMaintenance);
 router.post('/maintenance', createMaintenance);
 router.get('/payments', getResidentPayments);
 
-// Corrected search route with protect middleware
+// ✅ Search route (for admin/staff search functionality)
 router.get('/search', async (req, res) => {
   try {
     const query = req.query.query?.trim();
