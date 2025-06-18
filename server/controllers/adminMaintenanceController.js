@@ -1,11 +1,10 @@
 const Maintenance = require('../models/Maintenance');
 const User = require('../models/User');
 
-// GET /api/admin/maintenance?status=Pending
+// ✅ GET /api/admin/maintenance?status=Pending
 const getMaintenanceByStatus = async (req, res) => {
   try {
     const { status } = req.query;
-
     const filter = status ? { status } : {};
 
     const requests = await Maintenance.find(filter)
@@ -20,7 +19,7 @@ const getMaintenanceByStatus = async (req, res) => {
   }
 };
 
-// GET /api/admin/maintenance/search?query=leak
+// ✅ GET /api/admin/maintenance/search?query=leak
 const searchResolvedIssues = async (req, res) => {
   const query = req.query.query;
   try {
@@ -43,7 +42,7 @@ const searchResolvedIssues = async (req, res) => {
   }
 };
 
-// PUT /api/admin/maintenance/:id
+// ✅ PUT /api/admin/maintenance/:id
 const updateMaintenanceStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -66,8 +65,25 @@ const updateMaintenanceStatus = async (req, res) => {
   }
 };
 
+// ✅ DELETE /api/admin/maintenance/:id
+const deleteMaintenanceRequest = async (req, res) => {
+  try {
+    const request = await Maintenance.findByIdAndDelete(req.params.id);
+
+    if (!request) {
+      return res.status(404).json({ message: 'Maintenance request not found' });
+    }
+
+    res.json({ message: 'Maintenance request deleted successfully' });
+  } catch (err) {
+    console.error('[DELETE MAINTENANCE ERROR]', err);
+    res.status(500).json({ message: 'Failed to delete maintenance request' });
+  }
+};
+
 module.exports = {
   getMaintenanceByStatus,
   searchResolvedIssues,
   updateMaintenanceStatus,
+  deleteMaintenanceRequest,
 };

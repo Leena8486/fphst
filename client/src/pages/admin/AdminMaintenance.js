@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_OPTIONS = ['Pending', 'In Progress', 'Resolved'];
-const BASE_URL = 'https://fphst.onrender.com'; 
+const BASE_URL = 'https://fphst.onrender.com';
 
 const AdminMaintenanceRequests = () => {
   const navigate = useNavigate();
@@ -43,16 +43,6 @@ const AdminMaintenanceRequests = () => {
     }
   }, [searchQuery]);
 
-  useEffect(() => {
-    if (searchMode && searchQuery.trim()) {
-      searchResolvedIssues();
-    } else if (!searchMode) {
-      fetchRequestsByStatus();
-    } else {
-      setRequests([]);
-    }
-  }, [statusFilter, searchQuery, searchMode, fetchRequestsByStatus, searchResolvedIssues]);
-
   const handleStatusChange = async (id, newStatus) => {
     setUpdatingId(id);
     try {
@@ -71,6 +61,32 @@ const AdminMaintenanceRequests = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this resolved request?');
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`${BASE_URL}/api/admin/maintenance/${id}`);
+      if (searchMode) {
+        await searchResolvedIssues();
+      } else {
+        await fetchRequestsByStatus();
+      }
+    } catch (err) {
+      alert('Failed to delete request');
+    }
+  };
+
+  useEffect(() => {
+    if (searchMode && searchQuery.trim()) {
+      searchResolvedIssues();
+    } else if (!searchMode) {
+      fetchRequestsByStatus();
+    } else {
+      setRequests([]);
+    }
+  }, [statusFilter, searchQuery, searchMode, fetchRequestsByStatus, searchResolvedIssues]);
+
   return (
     <div
       style={{
@@ -81,19 +97,18 @@ const AdminMaintenanceRequests = () => {
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button
+        <span
           onClick={() => navigate('/admin/dashboard')}
           style={{
-            backgroundColor: '#34495e',
-            color: 'white',
-            padding: '10px 15px',
-            borderRadius: 6,
-            border: 'none',
+            color: '#2980b9',
+            fontWeight: 'bold',
+            fontSize: '1rem',
             cursor: 'pointer',
+            textDecoration: 'underline',
           }}
         >
           ← Back to Dashboard
-        </button>
+        </span>
 
         <h1 style={{ color: '#2c3e50', fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>
           🛠️ Maintenance Requests
@@ -185,31 +200,50 @@ const AdminMaintenanceRequests = () => {
                 <td style={{ padding: 10 }}>{new Date(req.createdAt).toLocaleString()}</td>
                 <td style={{ padding: 10 }}>{req.requestedBy?.name || 'N/A'}</td>
                 <td style={{ padding: 10 }}>
-                  <select
-                    value={req.status}
-                    disabled={updatingId === req._id}
-                    onChange={(e) => handleStatusChange(req._id, e.target.value)}
-                    style={{
-                      padding: '6px 10px',
-                      borderRadius: 6,
-                      border: '1px solid #bdc3c7',
-                      fontWeight: '600',
-                      backgroundColor:
-                        req.status === 'Pending'
-                          ? '#f39c12'
-                          : req.status === 'In Progress'
-                          ? '#3498db'
-                          : '#27ae60',
-                      color: 'white',
-                      cursor: updatingId === req._id ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    {STATUS_OPTIONS.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <select
+                      value={req.status}
+                      disabled={updatingId === req._id}
+                      onChange={(e) => handleStatusChange(req._id, e.target.value)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        border: '1px solid #bdc3c7',
+                        fontWeight: '600',
+                        backgroundColor:
+                          req.status === 'Pending'
+                            ? '#f39c12'
+                            : req.status === 'In Progress'
+                            ? '#3498db'
+                            : '#27ae60',
+                        color: 'white',
+                        cursor: updatingId === req._id ? 'not-allowed' : 'pointer',
+                        marginRight: req.status === 'Resolved' ? 8 : 0,
+                      }}
+                    >
+                      {STATUS_OPTIONS.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+
+                    {req.status === 'Resolved' && (
+                      <button
+                        onClick={() => handleDelete(req._id)}
+                        style={{
+                          backgroundColor: '#e74c3c',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 10px',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
