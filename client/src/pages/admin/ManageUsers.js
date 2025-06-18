@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { Dialog } from '@headlessui/react';
 import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/solid';
 
-const API_BASE = 'https://fphst.onrender.com/api'; // 🔥 Set your deployed API base URL
+const API_BASE = 'https://fphst.onrender.com/api';
 
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
@@ -18,8 +18,7 @@ export default function ManageUsers() {
     email: '',
     phone: '',
     role: 'Resident',
-    roomPreference: 'Single',
-    password: 'Default1234',
+    password: '',
   });
 
   useEffect(() => {
@@ -94,8 +93,7 @@ export default function ManageUsers() {
         email: user.email,
         phone: user.phone || '',
         role: user.role,
-        roomPreference: user.roomPreference || 'Single',
-        password: 'Default1234',
+        password: '',
       });
     } else {
       setFormData({
@@ -103,8 +101,7 @@ export default function ManageUsers() {
         email: '',
         phone: '',
         role: 'Resident',
-        roomPreference: 'Single',
-        password: 'Default1234',
+        password: '',
       });
     }
     setShowModal(true);
@@ -135,13 +132,13 @@ export default function ManageUsers() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">Manage Users</h1>
+      <h1 className="text-2xl font-bold mb-4 text-blue-800">Manage Users</h1>
 
       <div className="flex items-center gap-4 mb-6">
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
-          className="border rounded px-4 py-2"
+          className="border rounded px-4 py-2 shadow-sm"
         >
           <option value="">Select Role</option>
           <option value="Admin">Admin</option>
@@ -153,11 +150,11 @@ export default function ManageUsers() {
           placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-4 py-2"
+          className="border rounded px-4 py-2 shadow-sm"
         />
         <button
           onClick={() => openModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2 shadow"
         >
           <PlusIcon className="w-4 h-4" /> Add User
         </button>
@@ -197,13 +194,13 @@ export default function ManageUsers() {
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={() => checkIn(user._id)}
-                    className="bg-green-600 text-white px-3 py-1 rounded w-full"
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded w-full"
                   >
                     Check-In
                   </button>
                   <button
                     onClick={() => checkOut(user._id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded w-full"
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded w-full"
                   >
                     Check-Out
                   </button>
@@ -212,10 +209,10 @@ export default function ManageUsers() {
             )}
 
             <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => openModal(user)} className="text-blue-600">
+              <button onClick={() => openModal(user)} className="text-blue-600 hover:text-blue-800">
                 <PencilIcon className="w-5 h-5" />
               </button>
-              <button onClick={() => deleteUser(user._id)} className="text-red-600">
+              <button onClick={() => deleteUser(user._id)} className="text-red-600 hover:text-red-800">
                 <TrashIcon className="w-5 h-5" />
               </button>
             </div>
@@ -263,22 +260,25 @@ export default function ManageUsers() {
               <option value="Staff">Staff</option>
               <option value="Resident">Resident</option>
             </select>
-            <select
+            <input
+              type="password"
+              placeholder="Password"
               className="w-full border px-3 py-2 rounded"
-              value={formData.roomPreference}
-              onChange={(e) => setFormData({ ...formData, roomPreference: e.target.value })}
-            >
-              <option value="Single">Single</option>
-              <option value="Double">Double</option>
-              <option value="Triple">Triple</option>
-              <option value="Dorm">Dorm</option>
-            </select>
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
           </div>
           <div className="flex justify-end gap-2 mt-4">
-            <button onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-200 rounded">
+            <button
+              onClick={() => setShowModal(false)}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+            >
               Cancel
             </button>
-            <button onClick={saveUser} className="px-4 py-2 bg-blue-600 text-white rounded">
+            <button
+              onClick={saveUser}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+            >
               Save
             </button>
           </div>
