@@ -74,25 +74,20 @@ const getResidentMaintenance = async (req, res) => {
   }
 };
 
-// ✅ Create new maintenance request
 const createMaintenance = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(403).json({ message: 'User not authenticated' });
     }
 
-    // 🔧 FIX: Fetch the user to access assignedRoom
+    // ✅ Fetch the user to access assignedRoom
     const user = await User.findById(req.user.id);
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
     const request = new Maintenance({
-      requestedBy: user._id,
+      requestedBy: req.user.id,
       title: req.body.title,
       description: req.body.description,
-      room: user.assignedRoom || null, // ✅ Save room reference
+      room: user.assignedRoom || null, // ✅ use the user's assignedRoom
     });
 
     await request.save();
