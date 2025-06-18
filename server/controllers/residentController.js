@@ -81,11 +81,18 @@ const createMaintenance = async (req, res) => {
       return res.status(403).json({ message: 'User not authenticated' });
     }
 
+    // 🔧 FIX: Fetch the user to access assignedRoom
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     const request = new Maintenance({
-      requestedBy: req.user.id,
+      requestedBy: user._id,
       title: req.body.title,
       description: req.body.description,
-      room: user.assignedRoom?._id || null,
+      room: user.assignedRoom || null, // ✅ Save room reference
     });
 
     await request.save();
