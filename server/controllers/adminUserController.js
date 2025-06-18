@@ -1,8 +1,6 @@
 const User = require('../models/User');
 const Room = require('../models/Room');
 
-// ✅ Get all users (optionally filter by role via ?role=Resident)
-// ✅ Get all users (optionally filter by role via ?role=Resident)
 exports.getAllUsers = async (req, res) => {
   try {
     const roleFilter = req.query.role ? { role: req.query.role } : {};

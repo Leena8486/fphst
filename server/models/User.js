@@ -10,8 +10,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['Admin', 'Staff', 'Resident'], default: 'Resident' },
-  roomPreference: { type: String, enum: ['Single', 'Double', 'Triple', 'Dorm'], default: 'Single' },
-  assignedRoom: { type: mongoose.Schema.Types.ObjectId, ref: 'Room', default: null },
+   assignedRoom: { type: mongoose.Schema.Types.ObjectId, ref: 'Room', default: null },
   checkedIn: { type: Boolean, default: false }
 });
 

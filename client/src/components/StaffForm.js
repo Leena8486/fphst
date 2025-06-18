@@ -7,7 +7,7 @@ const StaffForm = ({ selectedStaff = null, onSuccess }) => {
     email: '',
     phone: '',
     role: 'Staff',
-    password: '', // added
+    password: '',
   });
 
   const [error, setError] = useState('');
@@ -20,7 +20,7 @@ const StaffForm = ({ selectedStaff = null, onSuccess }) => {
         email: selectedStaff.email || '',
         phone: selectedStaff.phone || '',
         role: selectedStaff.role || 'Staff',
-        password: '', // don't prefill password
+        password: '',
       });
     } else {
       setForm({ name: '', email: '', phone: '', role: 'Staff', password: '' });
@@ -38,14 +38,15 @@ const StaffForm = ({ selectedStaff = null, onSuccess }) => {
     setError('');
 
     try {
+      const apiBase = 'https://fphst.onrender.com/api/staff';
+
       if (selectedStaff) {
-        // Don't send password if not filled
         const { password, ...editData } = form;
         const dataToSend = password ? form : editData;
 
-        await axios.put(`http://localhost:5000/api/staff/${selectedStaff._id}`, dataToSend);
+        await axios.put(`${apiBase}/${selectedStaff._id}`, dataToSend);
       } else {
-        await axios.post('http://localhost:5000/api/staff', form);
+        await axios.post(apiBase, form);
       }
 
       onSuccess();
@@ -102,7 +103,7 @@ const StaffForm = ({ selectedStaff = null, onSuccess }) => {
           onChange={handleChange}
           placeholder={selectedStaff ? "Leave blank to keep current password" : "Password"}
           className="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          required={!selectedStaff} // required only when adding
+          required={!selectedStaff}
         />
 
         <button

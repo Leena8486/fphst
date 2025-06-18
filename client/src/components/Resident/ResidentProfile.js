@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom';
 
 const ResidentProfile = () => {
   const [profile, setProfile] = useState(null);
+  const [form, setForm] = useState({});
+  const [editMode, setEditMode] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,12 +24,15 @@ const ResidentProfile = () => {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache',
-            Pragma: 'no-cache',
           }
         });
 
         setProfile(res.data);
+        setForm({
+          name: res.data.name,
+          phone: res.data.phone || '',
+          roomNumber: res.data.assignedRoom?.roomNumber || '',
+        });
       } catch (err) {
         console.error("Profile fetch error:", err);
         setError(err.response?.data?.message || 'Failed to fetch profile');
@@ -36,15 +42,48 @@ const ResidentProfile = () => {
     fetchProfile();
   }, []);
 
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.put('https://fphst.onrender.com/api/residents/profile', form, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      setProfile((prev) => ({
+        ...prev,
+        name: res.data.name,
+        phone: res.data.phone,
+        assignedRoom: { roomNumber: res.data.roomNumber },
+      }));
+      setMessage('✅ Profile updated successfully');
+      setEditMode(false);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update profile');
+    }
+  };
+
   if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
   if (!profile) return <div className="p-4 text-center">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center py-16 px-4">
-      <div className="bg-white border border-indigo-200 rounded-3xl shadow-xl w-full max-w-lg p-10">
+    <div
+      className="min-h-screen bg-cover bg-center flex items-center justify-center py-16 px-4"
+      style={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1584697964403-c0b7c9b5ff65?auto=format&fit=crop&w=1920&q=80')`,
+      }}
+    >
+      <div className="bg-white bg-opacity-90 border border-indigo-200 rounded-3xl shadow-xl w-full max-w-lg p-10">
         <button
           onClick={() => navigate('/resident/dashboard')}
-          className="mb-8 inline-block text-indigo-600 font-semibold hover:text-indigo-900 transition"
+          className="mb-6 inline-block text-indigo-600 font-semibold hover:text-indigo-900 transition"
         >
           ← Back to Dashboard
         </button>
@@ -58,22 +97,86 @@ const ResidentProfile = () => {
             />
           </div>
 
-          <h2 className="text-4xl font-extrabold text-indigo-900 mb-2">{profile.name}</h2>
-          <p className="text-indigo-600 font-medium mb-8 tracking-wide">Resident</p>
+          <h2 className="text-3xl font-extrabold text-indigo-900 mb-2">{profile.name}</h2>
+          <p className="text-indigo-600 font-medium mb-4 tracking-wide">Resident</p>
+
+          {message && <div className="text-green-700 bg-green-100 px-4 py-2 rounded mb-3">{message}</div>}
+          {error && <div className="text-red-700 bg-red-100 px-4 py-2 rounded mb-3">{error}</div>}
 
           <div className="w-full bg-indigo-50 rounded-xl p-6 shadow-inner space-y-4">
-            <p className="text-indigo-800 text-lg">
-              <span className="font-semibold">Email:</span> {profile.email}
-            </p>
-            <p className="text-indigo-800 text-lg">
-              <span className="font-semibold">Phone:</span> {profile.phone || 'Not Provided'}
-            </p>
-            <p className="text-indigo-800 text-lg">
-              <span className="font-semibold">Room:</span> {profile.assignedRoom?.roomNumber || 'Not Assigned'}
-            </p>
-            <p className="text-indigo-800 text-lg">
-              <span className="font-semibold">Role:</span> {profile.role}
-            </p>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              disabled={!editMode}
+              className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
+            />
+            <input
+              type="text"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              disabled={!editMode}
+              className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
+            />
+            <input
+              type="text"
+              name="roomNumber"
+              value={form.roomNumber}
+              onChange={handleChange}
+              disabled={!editMode}
+              className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
+            />
+
+            <input
+              type="text"
+              value={profile.email}
+              disabled
+              className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
+            />
+
+            <input
+              type="text"
+              value={profile.role}
+              disabled
+              className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
+            />
+          </div>
+
+          <div className="mt-6 flex space-x-4">
+            {!editMode ? (
+              <button
+                onClick={() => setEditMode(true)}
+                className="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700"
+              >
+                ✏️ Edit
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleUpdate}
+                  className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700"
+                >
+                  💾 Save
+                </button>
+                <button
+                  onClick={() => {
+                    setEditMode(false);
+                    setForm({
+                      name: profile.name,
+                      phone: profile.phone || '',
+                      roomNumber: profile.assignedRoom?.roomNumber || '',
+                    });
+                    setMessage('');
+                    setError('');
+                  }}
+                  className="bg-gray-400 text-white px-5 py-2 rounded hover:bg-gray-500"
+                >
+                  ❌ Cancel
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

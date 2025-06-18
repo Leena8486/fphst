@@ -67,10 +67,29 @@ const getResidentPayments = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch payments' });
   }
 };
+const updateResidentProfile = async (req, res) => {
+  const resident = await Resident.findById(req.user.id);
+  if (!resident) return res.status(404).json({ message: 'Resident not found' });
+
+  resident.name = req.body.name || resident.name;
+  resident.phone = req.body.phone || resident.phone;
+  resident.roomNumber = req.body.roomNumber || resident.roomNumber;
+
+  const updated = await resident.save();
+  res.json({
+    _id: updated._id,
+    name: updated.name,
+    email: updated.email,
+    phone: updated.phone,
+    roomNumber: updated.roomNumber,
+    role: updated.role,
+  });
+};
 
 module.exports = {
   getResidentProfile,
   getResidentMaintenance,
   createMaintenance,
   getResidentPayments,
+  updateResidentProfile,
 };

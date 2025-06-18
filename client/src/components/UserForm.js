@@ -6,11 +6,13 @@ export default function UserForm({ userData, onSubmit, onCancel }) {
     email: '',
     phone: '',
     role: 'Resident',
-    roomPreference: 'Single',
   });
 
   useEffect(() => {
-    if (userData) setForm(userData);
+    if (userData) {
+      const { name, email, phone, role } = userData;
+      setForm({ name, email, phone, role });
+    }
   }, [userData]);
 
   const handleChange = (e) => {
@@ -46,7 +48,6 @@ export default function UserForm({ userData, onSubmit, onCancel }) {
           className="p-2 border border-gray-300 rounded"
         />
 
-        {/* Phone field shown for all, but validated only for Admin/Staff */}
         <input
           type="text"
           name="phone"
@@ -77,25 +78,18 @@ export default function UserForm({ userData, onSubmit, onCancel }) {
           <option value="Admin">Admin</option>
         </select>
 
-        {form.role === 'Resident' && (
-          <select
-            name="roomPreference"
-            value={form.roomPreference}
-            onChange={handleChange}
-            className="p-2 border border-gray-300 rounded"
-          >
-            <option value="Single">Single</option>
-            <option value="Double">Double</option>
-            <option value="Triple">Triple</option>
-            <option value="Dorm">Dorm</option>
-          </select>
-        )}
-
         <div className="col-span-2 flex gap-4 justify-end mt-4">
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
             {userData ? 'Update' : 'Add'}
           </button>
-          <button type="button" onClick={onCancel} className="text-gray-600 hover:underline">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-gray-600 hover:underline"
+          >
             Cancel
           </button>
         </div>
