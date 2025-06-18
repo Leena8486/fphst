@@ -244,13 +244,17 @@ export default function ManageUsers() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
-            <input
-              type="text"
-              placeholder="Phone"
-              className="w-full border px-3 py-2 rounded"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            />
+<input
+  type="tel"
+  name="phone"
+  placeholder="Enter phone number with +91"
+  value={formData.phone}
+  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+  autoComplete="off"
+  pattern="\+91\d{10}"
+  className="w-full border px-3 py-2 rounded"
+/>
+
             <select
               className="w-full border px-3 py-2 rounded"
               value={formData.role}

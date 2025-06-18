@@ -17,22 +17,22 @@ exports.getAllUsers = async (req, res) => {
 };
 
 
-// ✅ Create new user
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, phone, role, roomPreference } = req.body;
+    const { name, email, phone, role } = req.body;
+
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already in use' });
 
-    const user = await User.create({
+    const user = new User({
       name,
       email,
       phone,
       role,
-      roomPreference,
       password: 'Default1234',
     });
 
+    await user.save();
     res.status(201).json(user);
   } catch (err) {
     console.error('User creation error:', err);
@@ -40,15 +40,16 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// ✅ Update user
 exports.updateUser = async (req, res) => {
   try {
-    const { name, email, phone, role, roomPreference } = req.body;
+    const { name, email, phone, role } = req.body;
+
     const updated = await User.findByIdAndUpdate(
       req.params.id,
-      { name, email, phone, role, roomPreference },
+      { name, email, phone, role },
       { new: true }
     );
+
     res.json(updated);
   } catch (err) {
     console.error('User update error:', err);
