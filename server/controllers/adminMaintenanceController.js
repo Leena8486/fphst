@@ -7,10 +7,11 @@ const getMaintenanceByStatus = async (req, res) => {
     const { status } = req.query;
     const filter = status ? { status } : {};
 
-    const requests = await Maintenance.find(filter)
-      .populate('requestedBy', 'name email')
-      .populate('assignedTo', 'name email')
-      .sort({ createdAt: -1 });
+const requests = await Maintenance.find(filter)
+  .populate('requestedBy', 'name email')
+  .populate('assignedTo', 'name email')
+  .populate('room', 'number') // ✅ ADD THIS LINE
+  .sort({ createdAt: -1 });
 
     res.status(200).json(requests);
   } catch (err) {
@@ -27,13 +28,11 @@ const searchResolvedIssues = async (req, res) => {
       return res.status(400).json({ message: 'Search query is required' });
     }
 
-    const results = await Maintenance.find({
-      $text: { $search: query },
-      status: 'Resolved',
-    })
-      .populate('requestedBy', 'name email')
-      .populate('assignedTo', 'name email')
-      .sort({ createdAt: -1 });
+const requests = await Maintenance.find(filter)
+  .populate('requestedBy', 'name email')
+  .populate('assignedTo', 'name email')
+  .populate('room', 'number') // ✅ ADD THIS LINE
+  .sort({ createdAt: -1 });
 
     res.json(results);
   } catch (err) {

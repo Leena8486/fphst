@@ -195,7 +195,7 @@ const AdminMaintenanceRequests = () => {
             {requests.map((req) => (
               <tr key={req._id} style={{ borderBottom: '1px solid #ddd' }}>
                 <td style={{ padding: 10 }}>{req.title}</td>
-                <td style={{ padding: 10 }}>{req.room?.roomNumber || 'N/A'}</td>
+                <td>{req.room?.number || 'N/A'}</td>
                 <td style={{ padding: 10 }}>{req.description}</td>
                 <td style={{ padding: 10 }}>{new Date(req.createdAt).toLocaleString()}</td>
                 <td style={{ padding: 10 }}>{req.requestedBy?.name || 'N/A'}</td>
