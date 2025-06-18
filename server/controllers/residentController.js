@@ -62,24 +62,30 @@ const getResidentMaintenance = async (req, res) => {
 // ✅ Create new maintenance request
 const createMaintenance = async (req, res) => {
   try {
-    if (!req.user || !req.user.id) {
-      return res.status(403).json({ message: 'User not authenticated' });
+    const { title, description } = req.body;
+
+    // ✅ Fetch the logged-in user and their assigned room
+    const user = await User.findById(req.user._id);
+
+    if (!user || !user.assignedRoom) {
+      return res.status(400).json({ message: 'No room assigned to user' });
     }
 
-    const request = new Maintenance({
-      requestedBy: req.user.id,
-      title: req.body.title,
-      description: req.body.description,
+    // ✅ Create a new maintenance request with room included
+    const newRequest = new Maintenance({
+      title,
+      description,
+      requestedBy: req.user._id,
+      room: user.assignedRoom, // ✅ Save the room reference
     });
 
-    await request.save();
-    res.status(201).json(request);
-  } catch (error) {
-    console.error('❌ Error creating maintenance:', error);
-    res.status(500).json({ message: 'Failed to create request', error: error.message });
+    const savedRequest = await newRequest.save();
+    res.status(201).json(savedRequest);
+  } catch (err) {
+    console.error('[CREATE MAINTENANCE ERROR]', err);
+    res.status(500).json({ message: 'Failed to create maintenance request' });
   }
 };
-
 // ✅ Get resident payments
 const getResidentPayments = async (req, res) => {
   try {
