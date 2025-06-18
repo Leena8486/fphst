@@ -6,14 +6,15 @@ const Room = require('../models/Room');
 // ✅ Get resident profile
 const getResidentProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .populate('assignedRoom');
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Disable HTTP caching so client always gets fresh data
-    res.set('Cache-Control', 'no-store');
-
+    res.set('Cache-Control', 'no-store'); // Prevent browser caching
     res.json(user);
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -21,15 +22,55 @@ const getResidentProfile = async (req, res) => {
   }
 };
 
+// ✅ Update resident profile (including room assignment)
+const updateResidentProfile = async (req, res) => {
+  try {
+    const resident = await User.findById(req.user.id);
+    if (!resident) {
+      return res.status(404).json({ message: 'Resident not found' });
+    }
+
+    // Update fields
+    resident.name = req.body.name || resident.name;
+    resident.phone = req.body.phone || resident.phone;
+
+    // Room reassignment (if provided)
+    if (req.body.room) {
+      const room = await Room.findOne({ number: req.body.room });
+      if (!room) {
+        return res.status(404).json({ message: 'Room not found' });
+      }
+      resident.assignedRoom = room._id;
+    }
+
+    const updated = await resident.save();
+
+    const populatedResident = await User.findById(updated._id)
+      .select('-password')
+      .populate('assignedRoom');
+
+    res.json({
+      _id: populatedResident._id,
+      name: populatedResident.name,
+      email: populatedResident.email,
+      phone: populatedResident.phone,
+      role: populatedResident.role,
+      assignedRoom: populatedResident.assignedRoom,
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Failed to update profile' });
+  }
+};
+
 // ✅ Get resident maintenance requests
 const getResidentMaintenance = async (req, res) => {
   try {
-    console.log('✅ Fetching maintenance for:', req.user.id);
     const requests = await Maintenance.find({ requestedBy: req.user.id }).sort({ createdAt: -1 });
     res.json(requests);
   } catch (error) {
-    console.error('❌ Failed to fetch requests:', error);
-    res.status(500).json({ message: 'Failed to fetch requests' });
+    console.error('Error fetching maintenance requests:', error);
+    res.status(500).json({ message: 'Failed to fetch maintenance requests' });
   }
 };
 
@@ -40,10 +81,6 @@ const createMaintenance = async (req, res) => {
       return res.status(403).json({ message: 'User not authenticated' });
     }
 
-    console.log('🔍 Creating request for user ID:', req.user.id);
-    console.log('🔍 Title:', req.body.title);
-    console.log('🔍 Description:', req.body.description);
-
     const request = new Maintenance({
       requestedBy: req.user.id,
       title: req.body.title,
@@ -53,8 +90,8 @@ const createMaintenance = async (req, res) => {
     await request.save();
     res.status(201).json(request);
   } catch (error) {
-    console.error('❌ Error creating maintenance:', error);
-    res.status(500).json({ message: 'Failed to create request', error: error.message });
+    console.error('Error creating maintenance request:', error);
+    res.status(500).json({ message: 'Failed to create request' });
   }
 };
 
@@ -64,32 +101,15 @@ const getResidentPayments = async (req, res) => {
     const payments = await Payment.find({ resident: req.user.id });
     res.json(payments);
   } catch (error) {
+    console.error('Error fetching payments:', error);
     res.status(500).json({ message: 'Failed to fetch payments' });
   }
-};
-const updateResidentProfile = async (req, res) => {
-  const resident = await Resident.findById(req.user.id);
-  if (!resident) return res.status(404).json({ message: 'Resident not found' });
-
-  resident.name = req.body.name || resident.name;
-  resident.phone = req.body.phone || resident.phone;
-  resident.roomNumber = req.body.roomNumber || resident.roomNumber;
-
-  const updated = await resident.save();
-  res.json({
-    _id: updated._id,
-    name: updated.name,
-    email: updated.email,
-    phone: updated.phone,
-    roomNumber: updated.roomNumber,
-    role: updated.role,
-  });
 };
 
 module.exports = {
   getResidentProfile,
+  updateResidentProfile,
   getResidentMaintenance,
   createMaintenance,
   getResidentPayments,
-  updateResidentProfile,
 };

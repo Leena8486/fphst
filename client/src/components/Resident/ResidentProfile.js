@@ -30,6 +30,7 @@ const ResidentProfile = () => {
         setForm({
           name: res.data.name,
           phone: res.data.phone || '',
+          room: res.data.assignedRoom?.number || '',
         });
       } catch (err) {
         console.error('Profile fetch error:', err);
@@ -135,9 +136,11 @@ const ResidentProfile = () => {
               <label className="block font-semibold text-indigo-700 mb-1">Room</label>
               <input
                 type="text"
-                value={profile.assignedRoom?.number || 'Not Assigned'}
-                disabled
-                className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
+                name="room"
+                value={form.room}
+                onChange={handleChange}
+                disabled={!editMode}
+                className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
               />
             </div>
 
@@ -174,6 +177,7 @@ const ResidentProfile = () => {
                     setForm({
                       name: profile.name,
                       phone: profile.phone || '',
+                      room: profile.assignedRoom?.number || '',
                     });
                     setMessage('');
                     setError('');
