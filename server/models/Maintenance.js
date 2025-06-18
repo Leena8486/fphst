@@ -13,6 +13,11 @@ const maintenanceSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  room: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Room',
+},
+
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -22,8 +27,6 @@ const maintenanceSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   resolvedAt: { type: Date },
 });
-
-// Optional: enable search by title/description if needed in the future
 maintenanceSchema.index({ title: 'text', description: 'text' });
 
 module.exports = mongoose.models.Maintenance || mongoose.model('Maintenance', maintenanceSchema);
