@@ -6,12 +6,13 @@ export default function UserForm({ userData, onSubmit, onCancel }) {
     email: '',
     phone: '',
     role: 'Resident',
+    password: ''
   });
 
   useEffect(() => {
     if (userData) {
-      const { name, email, phone, role } = userData;
-      setForm({ name, email, phone, role });
+      const { password, ...rest } = userData;
+      setForm({ ...rest, password: '' });
     }
   }, [userData]);
 
@@ -22,13 +23,17 @@ export default function UserForm({ userData, onSubmit, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Frontend phone validation for Admin/Staff
     if (form.role !== 'Resident') {
       const phoneRegex = /^\+91\d{10}$/;
       if (!form.phone || !phoneRegex.test(form.phone)) {
         alert('Phone number must be in +91XXXXXXXXXX format for Admin and Staff');
         return;
       }
+    }
+
+    if (!form.password || form.password.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
     }
 
     onSubmit(form);
@@ -78,18 +83,21 @@ export default function UserForm({ userData, onSubmit, onCancel }) {
           <option value="Admin">Admin</option>
         </select>
 
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={handleChange}
+          required
+          className="p-2 border border-gray-300 rounded"
+        />
+
         <div className="col-span-2 flex gap-4 justify-end mt-4">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             {userData ? 'Update' : 'Add'}
           </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="text-gray-600 hover:underline"
-          >
+          <button type="button" onClick={onCancel} className="text-gray-600 hover:underline">
             Cancel
           </button>
         </div>

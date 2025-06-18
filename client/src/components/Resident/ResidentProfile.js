@@ -31,7 +31,6 @@ const ResidentProfile = () => {
         setForm({
           name: res.data.name,
           phone: res.data.phone || '',
-          roomNumber: res.data.assignedRoom?.roomNumber || '',
         });
       } catch (err) {
         console.error("Profile fetch error:", err);
@@ -61,7 +60,6 @@ const ResidentProfile = () => {
         ...prev,
         name: res.data.name,
         phone: res.data.phone,
-        assignedRoom: { roomNumber: res.data.roomNumber },
       }));
       setMessage('✅ Profile updated successfully');
       setEditMode(false);
@@ -103,46 +101,61 @@ const ResidentProfile = () => {
           {message && <div className="text-green-700 bg-green-100 px-4 py-2 rounded mb-3">{message}</div>}
           {error && <div className="text-red-700 bg-red-100 px-4 py-2 rounded mb-3">{error}</div>}
 
-          <div className="w-full bg-indigo-50 rounded-xl p-6 shadow-inner space-y-4">
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              disabled={!editMode}
-              className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
-            />
-            <input
-              type="text"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              disabled={!editMode}
-              className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
-            />
-            <input
-              type="text"
-              name="roomNumber"
-              value={form.roomNumber}
-              onChange={handleChange}
-              disabled={!editMode}
-              className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
-            />
+          <form className="w-full bg-indigo-50 rounded-xl p-6 shadow-inner space-y-4">
+            <div>
+              <label className="block font-semibold text-indigo-700 mb-1">Name</label>
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                disabled={!editMode}
+                className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
+              />
+            </div>
 
-            <input
-              type="text"
-              value={profile.email}
-              disabled
-              className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
-            />
+            <div>
+              <label className="block font-semibold text-indigo-700 mb-1">Phone</label>
+              <input
+                type="text"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                disabled={!editMode}
+                className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
+              />
+            </div>
 
-            <input
-              type="text"
-              value={profile.role}
-              disabled
-              className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
-            />
-          </div>
+            <div>
+              <label className="block font-semibold text-indigo-700 mb-1">Email</label>
+              <input
+                type="text"
+                value={profile.email}
+                disabled
+                className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-indigo-700 mb-1">Room</label>
+              <input
+                type="text"
+                value={profile.assignedRoom?.roomNumber || 'Not Assigned'}
+                disabled
+                className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-indigo-700 mb-1">Role</label>
+              <input
+                type="text"
+                value={profile.role}
+                disabled
+                className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
+              />
+            </div>
+          </form>
 
           <div className="mt-6 flex space-x-4">
             {!editMode ? (
@@ -166,7 +179,6 @@ const ResidentProfile = () => {
                     setForm({
                       name: profile.name,
                       phone: profile.phone || '',
-                      roomNumber: profile.assignedRoom?.roomNumber || '',
                     });
                     setMessage('');
                     setError('');
