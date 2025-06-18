@@ -85,6 +85,7 @@ const createMaintenance = async (req, res) => {
       requestedBy: req.user.id,
       title: req.body.title,
       description: req.body.description,
+      room: user.assignedRoom?._id || null,
     });
 
     await request.save();

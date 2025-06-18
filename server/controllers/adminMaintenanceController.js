@@ -7,11 +7,17 @@ const getMaintenanceByStatus = async (req, res) => {
     const { status } = req.query;
     const filter = status ? { status } : {};
 
-const requests = await Maintenance.find(filter)
-  .populate('requestedBy', 'name email')
-  .populate('assignedTo', 'name email')
-  .populate('room', 'number') // ✅ ADD THIS LINE
-  .sort({ createdAt: -1 });
+    const requests = await Maintenance.find(filter)
+      .populate({
+        path: 'requestedBy',
+        select: 'name email assignedRoom',
+        populate: {
+          path: 'assignedRoom',
+          select: 'number'
+        }
+      })
+      .populate('assignedTo', 'name email')
+      .sort({ createdAt: -1 });
 
     res.status(200).json(requests);
   } catch (err) {
@@ -28,11 +34,24 @@ const searchResolvedIssues = async (req, res) => {
       return res.status(400).json({ message: 'Search query is required' });
     }
 
-const requests = await Maintenance.find(filter)
-  .populate('requestedBy', 'name email')
-  .populate('assignedTo', 'name email')
-  .populate('room', 'number') // ✅ ADD THIS LINE
-  .sort({ createdAt: -1 });
+    const filter = {
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+      ],
+    };
+
+    const results = await Maintenance.find(filter)
+      .populate({
+        path: 'requestedBy',
+        select: 'name email assignedRoom',
+        populate: {
+          path: 'assignedRoom',
+          select: 'number'
+        }
+      })
+      .populate('assignedTo', 'name email')
+      .sort({ createdAt: -1 });
 
     res.json(results);
   } catch (err) {
