@@ -3,17 +3,18 @@ const Maintenance = require('../models/Maintenance');
 const Payment = require('../models/Payment');
 const Room = require('../models/Room');
 
-// ✅ Get resident profile
+// ✅ Get resident profile (with room populated)
 const getResidentProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .populate('assignedRoom'); // Populate full room details
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Disable HTTP caching so client always gets fresh data
     res.set('Cache-Control', 'no-store');
-
     res.json(user);
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -21,27 +22,26 @@ const getResidentProfile = async (req, res) => {
   }
 };
 
-// ✅ Update resident profile
+// ✅ Update resident profile (including room assignment)
 const updateResidentProfile = async (req, res) => {
   try {
     const resident = await User.findById(req.user.id);
+
     if (!resident || resident.role !== 'Resident') {
       return res.status(404).json({ message: 'Resident not found' });
     }
 
     resident.name = req.body.name || resident.name;
     resident.phone = req.body.phone || resident.phone;
-    resident.roomNumber = req.body.roomNumber || resident.roomNumber;
+    resident.assignedRoom = req.body.assignedRoom || resident.assignedRoom;
 
     const updated = await resident.save();
-    res.json({
-      _id: updated._id,
-      name: updated.name,
-      email: updated.email,
-      phone: updated.phone,
-      roomNumber: updated.roomNumber,
-      role: updated.role,
-    });
+
+    const populated = await User.findById(updated._id)
+      .select('-password')
+      .populate('assignedRoom');
+
+    res.json(populated);
   } catch (error) {
     console.error('❌ Error updating resident profile:', error);
     res.status(500).json({ message: 'Failed to update profile' });
@@ -51,7 +51,6 @@ const updateResidentProfile = async (req, res) => {
 // ✅ Get resident maintenance requests
 const getResidentMaintenance = async (req, res) => {
   try {
-    console.log('✅ Fetching maintenance for:', req.user.id);
     const requests = await Maintenance.find({ requestedBy: req.user.id }).sort({ createdAt: -1 });
     res.json(requests);
   } catch (error) {
@@ -66,10 +65,6 @@ const createMaintenance = async (req, res) => {
     if (!req.user || !req.user.id) {
       return res.status(403).json({ message: 'User not authenticated' });
     }
-
-    console.log('🔍 Creating request for user ID:', req.user.id);
-    console.log('🔍 Title:', req.body.title);
-    console.log('🔍 Description:', req.body.description);
 
     const request = new Maintenance({
       requestedBy: req.user.id,
