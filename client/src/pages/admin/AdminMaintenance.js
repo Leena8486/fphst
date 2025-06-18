@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_OPTIONS = ['Pending', 'In Progress', 'Resolved'];
+const BASE_URL = 'https://fphst.onrender.com'; 
 
 const AdminMaintenanceRequests = () => {
   const navigate = useNavigate();
@@ -18,9 +19,7 @@ const AdminMaintenanceRequests = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/admin/maintenance?status=${statusFilter}`
-      );
+      const res = await axios.get(`${BASE_URL}/api/admin/maintenance?status=${statusFilter}`);
       setRequests(res.data);
     } catch (err) {
       setError('Failed to fetch requests');
@@ -34,7 +33,7 @@ const AdminMaintenanceRequests = () => {
     setError('');
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/admin/maintenance/search?query=${encodeURIComponent(searchQuery)}`
+        `${BASE_URL}/api/admin/maintenance/search?query=${encodeURIComponent(searchQuery)}`
       );
       setRequests(res.data);
     } catch (err) {
@@ -57,7 +56,7 @@ const AdminMaintenanceRequests = () => {
   const handleStatusChange = async (id, newStatus) => {
     setUpdatingId(id);
     try {
-      await axios.put(`http://localhost:5000/api/admin/maintenance/${id}`, {
+      await axios.put(`${BASE_URL}/api/admin/maintenance/${id}`, {
         status: newStatus,
       });
       if (searchMode) {
@@ -73,25 +72,37 @@ const AdminMaintenanceRequests = () => {
   };
 
   return (
-    <div style={{ maxWidth: 1000, margin: '2rem auto', fontFamily: 'Arial, sans-serif' }}>
-      <button
-        onClick={() => navigate('/admin/dashboard')}
-        style={{
-          marginBottom: 20,
-          backgroundColor: '#34495e',
-          color: 'white',
-          padding: '10px 15px',
-          borderRadius: 6,
-          border: 'none',
-          cursor: 'pointer',
-        }}
-      >
-        ← Back to Dashboard
-      </button>
+    <div
+      style={{
+        maxWidth: 1000,
+        margin: '2rem auto',
+        fontFamily: 'Arial, sans-serif',
+        padding: '1rem',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button
+          onClick={() => navigate('/admin/dashboard')}
+          style={{
+            backgroundColor: '#34495e',
+            color: 'white',
+            padding: '10px 15px',
+            borderRadius: 6,
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          ← Back to Dashboard
+        </button>
 
-      <h1 style={{ color: '#2c3e50', marginBottom: 20 }}>Maintenance Requests</h1>
+        <h1 style={{ color: '#2c3e50', fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>
+          🛠️ Maintenance Requests
+        </h1>
 
-      <div style={{ marginBottom: 20, display: 'flex', gap: 15, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ width: 160 }} />
+      </div>
+
+      <div style={{ margin: '20px 0', display: 'flex', gap: 15, alignItems: 'center', flexWrap: 'wrap' }}>
         <label htmlFor="statusFilter" style={{ fontWeight: '600', fontSize: '1rem' }}>
           Filter by Status:
         </label>

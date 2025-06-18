@@ -8,7 +8,6 @@ const ResidentProfile = () => {
   const [editMode, setEditMode] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [roomList, setRoomList] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,7 +30,6 @@ const ResidentProfile = () => {
         setForm({
           name: res.data.name,
           phone: res.data.phone || '',
-          assignedRoom: res.data.assignedRoom?._id || '',
         });
       } catch (err) {
         console.error('Profile fetch error:', err);
@@ -39,17 +37,7 @@ const ResidentProfile = () => {
       }
     };
 
-    const fetchRooms = async () => {
-      try {
-        const res = await axios.get('https://fphst.onrender.com/api/rooms');
-        setRoomList(res.data);
-      } catch (err) {
-        console.error('Room fetch error:', err);
-      }
-    };
-
     fetchProfile();
-    fetchRooms();
   }, []);
 
   const handleChange = (e) => {
@@ -145,28 +133,12 @@ const ResidentProfile = () => {
 
             <div>
               <label className="block font-semibold text-indigo-700 mb-1">Room</label>
-              {editMode ? (
-                <select
-                  name="assignedRoom"
-                  value={form.assignedRoom}
-                  onChange={handleChange}
-                  className="w-full border px-4 py-2 rounded bg-white"
-                >
-                  <option value="">-- Select Room --</option>
-                  {roomList.map((room) => (
-                    <option key={room._id} value={room._id}>
-                      {room.number}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={profile.assignedRoom?.number || 'Not Assigned'}
-                  disabled
-                  className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
-                />
-              )}
+              <input
+                type="text"
+                value={profile.assignedRoom?.number || 'Not Assigned'}
+                disabled
+                className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
+              />
             </div>
 
             <div>
@@ -202,7 +174,6 @@ const ResidentProfile = () => {
                     setForm({
                       name: profile.name,
                       phone: profile.phone || '',
-                      assignedRoom: profile.assignedRoom?._id || '',
                     });
                     setMessage('');
                     setError('');
