@@ -2,13 +2,10 @@ const User = require('../models/User');
 const Staff = require('../models/Staff');
 const jwt = require('jsonwebtoken');
 
-// Utility to get the model based on role
-const getModelByRole = (role) => {
-  if (role === 'Staff') return Staff;
-  return User;
-};
+// Get model by role
+const getModelByRole = (role) => (role === 'Staff' ? Staff : User);
 
-// Generate JWT token
+// Sign JWT token
 const signToken = (user) =>
   jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
     expiresIn: '7d',
@@ -17,10 +14,9 @@ const signToken = (user) =>
 // REGISTER
 exports.register = async (req, res) => {
   const name = req.body.name?.trim();
-  const rawEmail = req.body.email;
-  const email = rawEmail?.trim().toLowerCase();
+  const email = req.body.email?.trim().toLowerCase();
   const password = req.body.password;
-  const phone = req.body.phone;
+  const phone = req.body.phone?.trim();
   const role = req.body.role || 'Resident';
   const roomPreference = req.body.roomPreference;
 
@@ -40,27 +36,22 @@ exports.register = async (req, res) => {
 
     let account;
     if (role === 'Staff') {
-      account = await Staff.create({ name, email, password, phone, role: 'Staff' });
+      account = new Staff({ name, email, password, phone, role });
     } else {
-      account = await User.create({
-        name,
-        email,
-        password,
-        phone,
-        role: role === 'Admin' ? 'Admin' : 'Resident',
-        roomPreference,
-      });
+      account = new User({ name, email, password, phone, role, roomPreference });
     }
 
+    await account.save(); // This will trigger password hashing via pre-save hook
+
     const token = signToken(account);
-console.log('🧁 Sending login cookie...');
+    console.log(`🎉 Registered new ${account.role}: ${account.email}`);
 
     res
       .cookie('token', token, {
         httpOnly: true,
         sameSite: 'None',
-        secure: true, // ✅ Required for HTTPS (Netlify + Render)
-        maxAge: 7 * 24 * 60 * 60 * 1000, // Optional: 7 days
+        secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
       .status(201)
       .json({
@@ -91,22 +82,14 @@ exports.login = async (req, res) => {
   }
 
   try {
-    let user = await User.findOne({ email });
-    if (!user) {
-      user = await Staff.findOne({ email });
-    }
+    let user = await User.findOne({ email }) || await Staff.findOne({ email });
 
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
-
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
+    if (!user || !(await user.matchPassword(password))) {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
     const token = signToken(user);
-console.log('🧁 Sending login cookie...');
+    console.log(`✅ ${user.role} ${user.email} logged in`);
 
     res
       .cookie('token', token, {
@@ -142,7 +125,7 @@ exports.logout = (req, res) => {
     .json({ message: 'Logged out successfully' });
 };
 
-// GET AUTHENTICATED USER
+// GET USER
 exports.getUser = async (req, res) => {
   try {
     const { id, role } = req.user;

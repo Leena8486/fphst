@@ -230,49 +230,60 @@ export default function ManageUsers() {
             {editingUser ? 'Edit User' : 'Add User'}
           </Dialog.Title>
           <div className="space-y-3">
-            <input
-              type="text"
-              placeholder="Name"
-              className="w-full border px-3 py-2 rounded"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full border px-3 py-2 rounded"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-<input
-  type="tel"
-  name="phone"
-  placeholder="Enter phone number with +91"
-  value={formData.phone}
-  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-  autoComplete="off"
-  pattern="\+91\d{10}"
-  className="w-full border px-3 py-2 rounded"
-/>
+  <input
+    type="text"
+    name="name"
+    autoComplete="name"
+    placeholder="Name"
+    className="w-full border px-3 py-2 rounded"
+    value={formData.name}
+    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+  />
 
-            <select
-              className="w-full border px-3 py-2 rounded"
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-            >
-              <option value="Admin">Admin</option>
-              <option value="Staff">Staff</option>
-              <option value="Resident">Resident</option>
-            </select>
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full border px-3 py-2 rounded"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
+  <input
+    type="email"
+    name="email"
+    autoComplete="email"
+    placeholder="Email"
+    className="w-full border px-3 py-2 rounded"
+    value={formData.email}
+    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+  />
+
+  <input
+    type="tel"
+    name="phoneNumber"
+    autoComplete="tel-national"
+    placeholder="Enter phone number with +91"
+    className="w-full border px-3 py-2 rounded"
+    pattern="\+91\d{10}"
+    value={formData.phone}
+    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+  />
+
+  <select
+    name="role"
+    autoComplete="off"
+    className="w-full border px-3 py-2 rounded"
+    value={formData.role}
+    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+  >
+    <option value="Admin">Admin</option>
+    <option value="Staff">Staff</option>
+    <option value="Resident">Resident</option>
+  </select>
+
+  <input
+    type="password"
+    name="password"
+    autoComplete="new-password"
+    placeholder="Password"
+    className="w-full border px-3 py-2 rounded"
+    value={formData.password}
+    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+  />
+</div>
+ <div className="flex justify-end gap-2 mt-4">
             <button
               onClick={() => setShowModal(false)}
               className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"

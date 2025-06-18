@@ -42,7 +42,6 @@ export default function AuthPage() {
         throw new Error('Invalid response from server');
       }
 
-      // ✅ Save token and user in localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
@@ -71,9 +70,7 @@ export default function AuthPage() {
           <button
             onClick={() => setIsLogin(true)}
             className={`py-2 px-6 rounded-full font-semibold transition-colors duration-300 ${
-              isLogin
-                ? 'bg-white text-indigo-700 shadow-lg'
-                : 'text-white hover:text-indigo-200'
+              isLogin ? 'bg-white text-indigo-700 shadow-lg' : 'text-white hover:text-indigo-200'
             }`}
             aria-label="Switch to Login"
           >
@@ -82,9 +79,7 @@ export default function AuthPage() {
           <button
             onClick={() => setIsLogin(false)}
             className={`py-2 px-6 rounded-full font-semibold transition-colors duration-300 ${
-              !isLogin
-                ? 'bg-white text-indigo-700 shadow-lg'
-                : 'text-white hover:text-indigo-200'
+              !isLogin ? 'bg-white text-indigo-700 shadow-lg' : 'text-white hover:text-indigo-200'
             }`}
             aria-label="Switch to Register"
           >
@@ -100,20 +95,26 @@ export default function AuthPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {!isLogin && (
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Full Name"
-              required
-              autoComplete="name"
-              className="w-full px-4 py-3 rounded-md bg-white bg-opacity-20 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-opacity-30 transition"
-            />
+            <>
+              <label htmlFor="name" className="sr-only">Full Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Full Name"
+                required
+                autoComplete="name"
+                className="w-full px-4 py-3 rounded-md bg-white bg-opacity-20 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-opacity-30 transition"
+              />
+            </>
           )}
 
+          <label htmlFor="email" className="sr-only">Email Address</label>
           <input
             type="email"
+            id="email"
             name="email"
             value={form.email}
             onChange={handleChange}
@@ -123,8 +124,10 @@ export default function AuthPage() {
             className="w-full px-4 py-3 rounded-md bg-white bg-opacity-20 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-opacity-30 transition"
           />
 
+          <label htmlFor="password" className="sr-only">Password</label>
           <input
             type="password"
+            id="password"
             name="password"
             value={form.password}
             onChange={handleChange}
@@ -135,17 +138,21 @@ export default function AuthPage() {
           />
 
           {!isLogin && (
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-md bg-white bg-opacity-20 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-opacity-30 transition"
-              aria-label="Select Role"
-            >
-              <option value="Resident">Resident</option>
-              <option value="Staff">Staff</option>
-              <option value="Admin">Admin</option>
-            </select>
+            <>
+              <label htmlFor="role" className="sr-only">Select Role</label>
+              <select
+                id="role"
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-md bg-white bg-opacity-20 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-opacity-30 transition"
+                aria-label="Select Role"
+              >
+                <option value="Resident">Resident</option>
+                <option value="Staff">Staff</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </>
           )}
 
           <button
