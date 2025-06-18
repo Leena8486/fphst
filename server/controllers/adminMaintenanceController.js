@@ -16,6 +16,7 @@ const getMaintenanceByStatus = async (req, res) => {
           select: 'number'
         }
       })
+      .populate('room', 'number') // ✅ Room number population
       .populate('assignedTo', 'name email')
       .sort({ createdAt: -1 });
 
@@ -50,6 +51,7 @@ const searchResolvedIssues = async (req, res) => {
           select: 'number'
         }
       })
+      .populate('room', 'number') // ✅ Room number population
       .populate('assignedTo', 'name email')
       .sort({ createdAt: -1 });
 
