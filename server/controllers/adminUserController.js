@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Room = require('../models/Room');
 
@@ -17,6 +18,8 @@ exports.getAllUsers = async (req, res) => {
 };
 
 
+  // ✅ Add this at the top of your file
+
 exports.createUser = async (req, res) => {
   try {
     const { name, email, phone, role } = req.body;
@@ -24,16 +27,19 @@ exports.createUser = async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already in use' });
 
+    // ✅ Hash the default password
+    const hashedPassword = await bcrypt.hash('Default1234', 10);
+
     const user = new User({
       name,
-      email,
+      email: email.toLowerCase(),
       phone,
       role,
-      password: 'Default1234',
+      password: hashedPassword, // ✅ Save encrypted password
     });
 
     await user.save();
-    res.status(201).json(user);
+    res.status(201).json({ message: 'User created with default password: Default1234', user });
   } catch (err) {
     console.error('User creation error:', err);
     res.status(400).json({ message: 'Failed to create user', error: err.message });
