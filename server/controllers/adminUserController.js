@@ -18,16 +18,14 @@ exports.getAllUsers = async (req, res) => {
 };
 
 
-  // ✅ Add this at the top of your file
-
-exports.createUser = async (req, res) => {
+  exports.createUser = async (req, res) => {
   try {
     const { name, email, phone, role } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already in use' });
 
-    // ✅ Hash the default password
+    // ✅ Manually hash the default password
     const hashedPassword = await bcrypt.hash('Default1234', 10);
 
     const user = new User({
@@ -35,16 +33,18 @@ exports.createUser = async (req, res) => {
       email: email.toLowerCase(),
       phone,
       role,
-      password: hashedPassword, // ✅ Save encrypted password
+      password: hashedPassword, // ✅ save hashed version
     });
 
-    await user.save();
+    await user.save(); // .pre('save') won't hash again — that's okay
+
     res.status(201).json({ message: 'User created with default password: Default1234', user });
   } catch (err) {
     console.error('User creation error:', err);
     res.status(400).json({ message: 'Failed to create user', error: err.message });
   }
 };
+
 
 exports.updateUser = async (req, res) => {
   try {
