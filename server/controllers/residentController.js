@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Maintenance = require('../models/Maintenance');
 const Payment = require('../models/Payment');
 const Room = require('../models/Room');
+const Notification = require('../models/Notification'); // ✅ Import added
 
 // ✅ Get resident profile
 const getResidentProfile = async (req, res) => {
@@ -14,7 +15,7 @@ const getResidentProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.set('Cache-Control', 'no-store'); // Prevent browser caching
+    res.set('Cache-Control', 'no-store');
     res.json(user);
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -22,7 +23,7 @@ const getResidentProfile = async (req, res) => {
   }
 };
 
-// ✅ Update resident profile (including room assignment)
+// ✅ Update resident profile (includes room assignment & notification)
 const updateResidentProfile = async (req, res) => {
   try {
     const resident = await User.findById(req.user.id);
@@ -34,13 +35,21 @@ const updateResidentProfile = async (req, res) => {
     resident.name = req.body.name || resident.name;
     resident.phone = req.body.phone || resident.phone;
 
-    // Room reassignment (if provided)
+    // ✅ Room reassignment (if provided)
     if (req.body.room) {
       const room = await Room.findOne({ number: req.body.room });
       if (!room) {
         return res.status(404).json({ message: 'Room not found' });
       }
+
       resident.assignedRoom = room._id;
+
+      // ✅ Create notification for room assignment
+      await Notification.create({
+        user: resident._id,
+        message: `You have been assigned Room ${room.number}.`,
+        type: 'Room',
+      });
     }
 
     const updated = await resident.save();
@@ -74,20 +83,20 @@ const getResidentMaintenance = async (req, res) => {
   }
 };
 
+// ✅ Create maintenance request (linked to assigned room)
 const createMaintenance = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(403).json({ message: 'User not authenticated' });
     }
 
-    // ✅ Fetch the user to access assignedRoom
     const user = await User.findById(req.user.id);
 
     const request = new Maintenance({
       requestedBy: req.user.id,
       title: req.body.title,
       description: req.body.description,
-      room: user.assignedRoom || null, // ✅ use the user's assignedRoom
+      room: user.assignedRoom || null,
     });
 
     await request.save();
