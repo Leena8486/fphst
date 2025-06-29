@@ -44,12 +44,14 @@ const ResidentDashboard = () => {
           return;
         }
 
-        // Optionally fetch user info
-        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/auth/me`, {
+        // ✅ Fetch current user info
+        const userRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Fetch notifications
+        console.log('👤 Logged in user ID:', userRes.data._id);
+
+        // ✅ Fetch notifications
         const notifRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
         });
