@@ -2,7 +2,10 @@ const User = require('../models/User');
 const Maintenance = require('../models/Maintenance');
 const Payment = require('../models/Payment');
 const Room = require('../models/Room');
-const Notification = require('../models/Notification'); // ✅ Import added
+const Notification = require('../models/Notification');
+
+const sendEmail = require('../utils/sendEmail'); // ✅ Email utility
+const sendSMS = require('../utils/sendSms');     // ✅ SMS utility
 
 // ✅ Get resident profile
 const getResidentProfile = async (req, res) => {
@@ -23,7 +26,7 @@ const getResidentProfile = async (req, res) => {
   }
 };
 
-// ✅ Update resident profile (includes room assignment & notification)
+// ✅ Update resident profile (room assignment + notification + email + sms)
 const updateResidentProfile = async (req, res) => {
   try {
     const resident = await User.findById(req.user.id);
@@ -44,12 +47,25 @@ const updateResidentProfile = async (req, res) => {
 
       resident.assignedRoom = room._id;
 
-      // ✅ Create notification for room assignment
+      // ✅ Create in-app notification
       await Notification.create({
         user: resident._id,
         message: `You have been assigned Room ${room.number}.`,
         type: 'Room',
       });
+
+      // ✅ Send email
+      await sendEmail(
+        resident.email,
+        'Room Assigned',
+        `Hello ${resident.name},\n\nYou have been assigned Room ${room.number}.\n\n- Hostel Management`
+      );
+
+      // ✅ Send SMS
+      await sendSMS(
+        resident.phone,
+        `Hi ${resident.name}, you have been assigned Room ${room.number}. - Hostel Mgmt`
+      );
     }
 
     const updated = await resident.save();
@@ -83,7 +99,7 @@ const getResidentMaintenance = async (req, res) => {
   }
 };
 
-// ✅ Create maintenance request (linked to assigned room)
+// ✅ Create maintenance request
 const createMaintenance = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
