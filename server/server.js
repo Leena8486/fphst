@@ -12,6 +12,8 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const residentRoutes = require('./routes/residentRoutes');
 const adminMaintenanceRoutes = require('./routes/adminMaintenanceRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+
 
 const app = express();
 
@@ -33,8 +35,8 @@ app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use('/api/staff', staffRoutes);
 app.use('/api/residents',residentRoutes);
 app.use('/api/admin', adminMaintenanceRoutes);
-app.use('/api/notifications', require('./routes/notificationRoutes'));
-
+app.use('/api/notifications',notificationRoutes);
+  
 
 // Test route
 app.get('/', (req, res) => res.send('API running'));
