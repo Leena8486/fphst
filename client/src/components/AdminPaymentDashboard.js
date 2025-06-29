@@ -5,10 +5,8 @@ import PaymentForm from './PaymentForm';
 import Pagination from './Pagination';
 import MonthlyRevenueChart from './MonthlyRevenueChart';
 import { Link } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
 const AdminPaymentDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -23,6 +21,7 @@ const AdminPaymentDashboard = () => {
 
   const limit = 5;
   const canEditAll = user?.role === 'Admin';
+
   const fetchPayments = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
@@ -82,28 +81,6 @@ const AdminPaymentDashboard = () => {
     setEditing(null);
     setFormOpen(false);
     fetchPayments();
-  };
-
-  // ✅ Stripe payment handler
-  const handleStripePayNow = async (payment) => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const { data } = await axios.post(
-        `${API_BASE_URL}/payments/create-checkout-session`,
-        {
-          amount: payment.amount,
-          description: `Payment for ${payment.category} - ${payment.residentName}`,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const stripe = await stripePromise;
-      await stripe.redirectToCheckout({ sessionId: data.id });
-    } catch (err) {
-      console.error("Stripe Checkout Error:", err);
-      alert("Payment initiation failed.");
-    }
   };
 
   return (
@@ -205,14 +182,6 @@ const AdminPaymentDashboard = () => {
                   <td className="px-6 py-4">{payment.status}</td>
                   <td className="px-6 py-4">{new Date(payment.date).toLocaleDateString()}</td>
                   <td className="px-6 py-4 text-center space-x-2">
-                    {payment.status === 'Pending' && (
-                      <button
-                        onClick={() => handleStripePayNow(payment)}
-                        className="bg-indigo-600 text-white px-3 py-1 rounded-md"
-                      >
-                        Pay Now
-                      </button>
-                    )}
                     {canEditAll && (
                       <>
                         <button

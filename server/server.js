@@ -33,6 +33,8 @@ app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use('/api/staff', staffRoutes);
 app.use('/api/residents',residentRoutes);
 app.use('/api/admin', adminMaintenanceRoutes);
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+
 
 // Test route
 app.get('/', (req, res) => res.send('API running'));

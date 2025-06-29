@@ -77,6 +77,8 @@ function App() {
             <CheckResident />
           </ProtectedRoute>
         } />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+
 
         {/* Resident Routes (Specific before wildcard) */}
         <Route path="/resident/profile" element={

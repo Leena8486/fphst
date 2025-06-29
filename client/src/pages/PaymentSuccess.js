@@ -1,24 +1,41 @@
-import React, { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { confirmPayment } from "../utils/api";
+import React, { useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const PaymentSuccess = () => {
-  const [params] = useSearchParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const confirm = async () => {
-      const session_id = params.get("session_id");
-      if (session_id) await confirmPayment(session_id);
+    const markPaymentAsCompleted = async () => {
+      const token = localStorage.getItem('token');
+
+      try {
+        await axios.post(
+          `${process.env.REACT_APP_API_BASE_URL}/payments/complete-latest`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        alert("✅ Payment marked as completed!");
+      } catch (err) {
+        console.error("Error marking payment as completed", err);
+        alert("⚠️ Failed to mark payment. Please contact admin.");
+      }
+
+      setTimeout(() => {
+        navigate("/resident/payments");
+      }, 2000);
     };
-    confirm();
-  }, [params]);
+
+    markPaymentAsCompleted();
+  }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-green-50">
-      <div className="p-6 bg-white border shadow rounded-xl text-center">
-        <h1 className="text-3xl font-bold text-green-700">Payment Successful!</h1>
-        <p className="text-gray-700 mt-2">Thank you for your payment.</p>
-      </div>
+    <div className="min-h-screen flex flex-col justify-center items-center bg-green-50 text-green-700 text-center">
+      <h1 className="text-3xl font-bold mb-4">🎉 Payment Successful</h1>
+      <p>Thank you! You will be redirected shortly...</p>
     </div>
   );
 };

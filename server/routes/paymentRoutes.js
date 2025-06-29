@@ -27,33 +27,31 @@ router.put("/:id", protectAdmin, updatePayment);
 router.delete("/:id", protectAdmin, deletePayment);
 
 // 💳 Stripe Checkout Session - Admin only
-router.post("/create-checkout-session", protectAdmin, async (req, res) => {
-  const { amount, description } = req.body;
-
+router.post('/complete-latest', protect, async (req, res) => {
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      line_items: [
-        {
-          price_data: {
-            currency: 'inr',
-            product_data: {
-              name: description || 'Hostel Payment',
-            },
-            unit_amount: amount * 100, // ₹ to paise
-          },
-          quantity: 1,
-        },
-      ],
-      success_url: `${process.env.CLIENT_URL}/payment-success`,
-      cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+    const latestPending = await Payment.findOne({
+      resident: req.user._id,
+      status: 'Pending',
+    }).sort({ createdAt: -1 });
+
+    if (!latestPending) {
+      return res.status(404).json({ message: 'No pending payment found' });
+    }
+
+    latestPending.status = 'Completed';
+    await latestPending.save();
+
+    // ✅ Send notification
+    await Notification.create({
+      user: req.user._id,
+      message: `Your payment of ₹${latestPending.amount} for ${latestPending.category} was successful.`,
+      type: 'Bill',
     });
 
-    res.json({ id: session.id });
+    res.json({ message: 'Payment marked as completed' });
   } catch (error) {
-    console.error('Stripe Checkout Error:', error.message);
-    res.status(500).json({ error: 'Stripe checkout session creation failed' });
+    console.error("Mark Complete Error:", error);
+    res.status(500).json({ error: 'Failed to update payment' });
   }
 });
 

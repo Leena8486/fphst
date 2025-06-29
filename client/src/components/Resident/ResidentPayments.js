@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, getAuthHeaders } from '../../utils/api'; // ✅ adjust if needed
+import { api, getAuthHeaders } from '../../utils/api';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
 const ResidentPayments = () => {
   const [payments, setPayments] = useState([]);
@@ -10,7 +13,7 @@ const ResidentPayments = () => {
     const fetchPayments = async () => {
       try {
         const res = await api.get('/residents/payments', {
-          headers: getAuthHeaders(), // ✅ sends Bearer token
+          headers: getAuthHeaders(),
         });
         setPayments(res.data);
       } catch (error) {
@@ -24,6 +27,27 @@ const ResidentPayments = () => {
 
     fetchPayments();
   }, [navigate]);
+
+  const handleStripePayNow = async (payment) => {
+    try {
+      const { data } = await api.post(
+        '/payments/create-checkout-session',
+        {
+          amount: payment.amount,
+          description: `Payment for ${payment.category}`,
+        },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      const stripe = await stripePromise;
+      await stripe.redirectToCheckout({ sessionId: data.id });
+    } catch (error) {
+      console.error('Stripe Checkout Error:', error);
+      alert('Payment initiation failed.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-600 p-8 flex flex-col items-center">
@@ -47,12 +71,13 @@ const ResidentPayments = () => {
                 <th className="py-3 px-6 text-left font-semibold">Amount</th>
                 <th className="py-3 px-6 text-left font-semibold">Status</th>
                 <th className="py-3 px-6 text-left font-semibold">Date</th>
+                <th className="py-3 px-6 text-center font-semibold">Action</th>
               </tr>
             </thead>
             <tbody>
               {payments.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="text-center py-6 text-gray-500">
+                  <td colSpan={5} className="text-center py-6 text-gray-500">
                     No payments found.
                   </td>
                 </tr>
@@ -79,6 +104,16 @@ const ResidentPayments = () => {
                   </td>
                   <td className="py-3 px-6">
                     {new Date(pay.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="py-3 px-6 text-center">
+                    {pay.status === 'Pending' && (
+                      <button
+                        onClick={() => handleStripePayNow(pay)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                      >
+                        Pay Now
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
