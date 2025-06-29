@@ -5,8 +5,10 @@ import PaymentForm from './PaymentForm';
 import Pagination from './Pagination';
 import MonthlyRevenueChart from './MonthlyRevenueChart';
 import { Link } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
 const AdminPaymentDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -21,8 +23,6 @@ const AdminPaymentDashboard = () => {
 
   const limit = 5;
   const canEditAll = user?.role === 'Admin';
-  const canUpdateStatus = user?.role === 'Staff';
-
   const fetchPayments = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
@@ -84,6 +84,28 @@ const AdminPaymentDashboard = () => {
     fetchPayments();
   };
 
+  // ✅ Stripe payment handler
+  const handleStripePayNow = async (payment) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const { data } = await axios.post(
+        `${API_BASE_URL}/payments/create-checkout-session`,
+        {
+          amount: payment.amount,
+          description: `Payment for ${payment.category} - ${payment.residentName}`,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const stripe = await stripePromise;
+      await stripe.redirectToCheckout({ sessionId: data.id });
+    } catch (err) {
+      console.error("Stripe Checkout Error:", err);
+      alert("Payment initiation failed.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-6">
@@ -106,6 +128,7 @@ const AdminPaymentDashboard = () => {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-6 mb-6">
+          {/* Category Filter */}
           <div className="flex flex-col">
             <label className="mb-1 text-gray-600 font-medium">Category</label>
             <select
@@ -121,6 +144,7 @@ const AdminPaymentDashboard = () => {
             </select>
           </div>
 
+          {/* Resident Filter */}
           <div className="flex flex-col">
             <label className="mb-1 text-gray-600 font-medium">Resident</label>
             <select
@@ -137,6 +161,7 @@ const AdminPaymentDashboard = () => {
             </select>
           </div>
 
+          {/* Date Filter */}
           <div className="flex flex-col">
             <label className="mb-1 text-gray-600 font-medium">Date</label>
             <input
@@ -163,88 +188,57 @@ const AdminPaymentDashboard = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Resident</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Category</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
-                {(canEditAll || canUpdateStatus) && (
-                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Actions</th>
-                )}
+                <th className="px-6 py-3">Resident</th>
+                <th className="px-6 py-3">Category</th>
+                <th className="px-6 py-3 text-right">Amount</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {payments.length > 0 ? (
-                payments.map((payment, idx) => (
-                  <tr key={payment._id} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
-                    <td className="px-6 py-4">{payment.residentName || 'N/A'}</td>
-                    <td className="px-6 py-4">{payment.category}</td>
-                    <td className="px-6 py-4 text-right font-semibold">₹{payment.amount}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                          payment.status === 'Pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : payment.status === 'Completed'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
+            <tbody>
+              {payments.map((payment, idx) => (
+                <tr key={payment._id} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
+                  <td className="px-6 py-4">{payment.residentName || 'N/A'}</td>
+                  <td className="px-6 py-4">{payment.category}</td>
+                  <td className="px-6 py-4 text-right">₹{payment.amount}</td>
+                  <td className="px-6 py-4">{payment.status}</td>
+                  <td className="px-6 py-4">{new Date(payment.date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-center space-x-2">
+                    {payment.status === 'Pending' && (
+                      <button
+                        onClick={() => handleStripePayNow(payment)}
+                        className="bg-indigo-600 text-white px-3 py-1 rounded-md"
                       >
-                        {payment.status || 'Pending'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{new Date(payment.date).toLocaleDateString()}</td>
-                    {(canEditAll || canUpdateStatus) && (
-                      <td className="px-6 py-4 text-center space-x-2">
-                        {canEditAll && (
-                          <>
-                            <button
-                              onClick={() => openForm(payment)}
-                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(payment._id)}
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md"
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                        {canUpdateStatus && (
-                          <button
-                            onClick={() => openForm({ ...payment, statusOnly: true })}
-                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md"
-                          >
-                            Update Status
-                          </button>
-                        )}
-                      </td>
+                        Pay Now
+                      </button>
                     )}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={canEditAll || canUpdateStatus ? 6 : 5}
-                    className="text-center py-8 text-gray-500"
-                  >
-                    No payments found.
+                    {canEditAll && (
+                      <>
+                        <button
+                          onClick={() => openForm(payment)}
+                          className="bg-yellow-500 text-white px-3 py-1 rounded-md"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(payment._id)}
+                          className="bg-red-600 text-white px-3 py-1 rounded-md"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
 
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
-        {showChart && (
-          <div className="mt-10">
-            <MonthlyRevenueChart />
-          </div>
-        )}
+        {showChart && <div className="mt-10"><MonthlyRevenueChart /></div>}
 
         {formOpen && (
           <PaymentForm
