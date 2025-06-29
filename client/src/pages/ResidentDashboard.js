@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const ResidentDashboard = () => {
   const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
 
   const handleLogout = () => {
     alert('Logged out! Redirecting to login page...');
@@ -28,6 +31,26 @@ const ResidentDashboard = () => {
       icon: '💳',
     },
   ];
+
+  // ✅ Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const { data } = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/notifications`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setNotifications(data);
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 p-6">
@@ -59,6 +82,22 @@ const ResidentDashboard = () => {
             <p className="text-gray-600 text-sm">{description}</p>
           </div>
         ))}
+      </div>
+
+      {/* 🔔 Notifications */}
+      <div className="max-w-5xl mx-auto mt-10">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">🔔 Notifications</h2>
+        {notifications.length === 0 ? (
+          <p className="text-gray-500">No new notifications.</p>
+        ) : (
+          <ul className="bg-white p-4 rounded shadow space-y-3">
+            {notifications.map((note) => (
+              <li key={note._id} className="border-b pb-2 text-gray-700">
+                {note.message}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
