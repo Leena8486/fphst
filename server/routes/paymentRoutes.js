@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Stripe = require("stripe");
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const { protect, protectAdmin } = require("../middleware/authMiddleware")
 
-const { protect, protectAdmin } = require("../middleware/authMiddleware");
 const {
   getPayments,
   createPayment,
@@ -26,32 +26,32 @@ router.post("/", protectAdmin, createPayment);
 router.put("/:id", protectAdmin, updatePayment);
 router.delete("/:id", protectAdmin, deletePayment);
 
-// 💳 Stripe Checkout Session - Admin only
-router.post('/complete-latest', protect, async (req, res) => {
+// ✅ Stripe Checkout Session
+router.post("/create-checkout-session", protect, async (req, res) => {
+  const { amount, description } = req.body;
+
   try {
-    const latestPending = await Payment.findOne({
-      resident: req.user._id,
-      status: 'Pending',
-    }).sort({ createdAt: -1 });
-
-    if (!latestPending) {
-      return res.status(404).json({ message: 'No pending payment found' });
-    }
-
-    latestPending.status = 'Completed';
-    await latestPending.save();
-
-    // ✅ Send notification
-    await Notification.create({
-      user: req.user._id,
-      message: `Your payment of ₹${latestPending.amount} for ${latestPending.category} was successful.`,
-      type: 'Bill',
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "inr",
+            product_data: { name: description || "Hostel Payment" },
+            unit_amount: amount * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.CLIENT_URL}/payment-success`,
+      cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
     });
 
-    res.json({ message: 'Payment marked as completed' });
+    res.json({ id: session.id });
   } catch (error) {
-    console.error("Mark Complete Error:", error);
-    res.status(500).json({ error: 'Failed to update payment' });
+    console.error("Stripe Checkout Error:", error.message);
+    res.status(500).json({ error: "Stripe checkout session creation failed" });
   }
 });
 
