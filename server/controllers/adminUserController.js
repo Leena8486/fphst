@@ -1,15 +1,16 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Room = require('../models/Room');
+const sendEmail = require('../utils/sendEmail');
+const sendSms = require('../utils/sendSms');
 
+// ✅ Get all users (with optional role filter)
 exports.getAllUsers = async (req, res) => {
   try {
     const roleFilter = req.query.role ? { role: req.query.role } : {};
-
     const users = await User.find(roleFilter)
       .select('_id name email role assignedRoom')
-      .populate('assignedRoom', 'number type'); // Populates room object
-
+      .populate('assignedRoom', 'number type');
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -17,27 +18,23 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-
-  exports.createUser = async (req, res) => {
+// ✅ Create a new user with default password
+exports.createUser = async (req, res) => {
   try {
     const { name, email, phone, role } = req.body;
-
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already in use' });
 
-    // ✅ Manually hash the default password
     const hashedPassword = await bcrypt.hash('Default1234', 10);
-
     const user = new User({
       name,
       email: email.toLowerCase(),
       phone,
       role,
-      password: hashedPassword, // ✅ save hashed version
+      password: hashedPassword,
     });
 
-    await user.save(); // .pre('save') won't hash again — that's okay
-
+    await user.save();
     res.status(201).json({ message: 'User created with default password: Default1234', user });
   } catch (err) {
     console.error('User creation error:', err);
@@ -45,17 +42,15 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-
+// ✅ Update user info
 exports.updateUser = async (req, res) => {
   try {
     const { name, email, phone, role } = req.body;
-
     const updated = await User.findByIdAndUpdate(
       req.params.id,
       { name, email, phone, role },
       { new: true }
     );
-
     res.json(updated);
   } catch (err) {
     console.error('User update error:', err);
@@ -63,7 +58,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// ✅ Update user role
+// ✅ Update only role
 exports.updateUserRole = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
@@ -77,7 +72,7 @@ exports.updateUserRole = async (req, res) => {
   }
 };
 
-// ✅ Delete user and update room occupancy
+// ✅ Delete user & update room
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -100,27 +95,17 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// ✅ Assign Room with Capacity Check and Auto-Check-In
+// ✅ Assign Room with Notification
 exports.assignRoom = async (req, res) => {
   try {
     const { roomId } = req.body;
     const userId = req.params.id;
 
-    console.log("Assigning room:", roomId, "to user:", userId);
-
     const user = await User.findById(userId);
     const room = await Room.findById(roomId);
 
-    if (!user) {
-      console.error("User not found");
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    if (!room) {
-      console.error("Room not found");
-      return res.status(404).json({ message: 'Room not found' });
-    }
-
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!room) return res.status(404).json({ message: 'Room not found' });
     if (room.currentOccupancy >= room.capacity) {
       return res.status(400).json({ message: 'Room is fully occupied' });
     }
@@ -137,14 +122,29 @@ exports.assignRoom = async (req, res) => {
     room.isOccupied = room.currentOccupancy >= room.capacity;
     await room.save();
 
-    res.json({ message: 'Room assigned successfully', user });
+    // ✅ Email notification
+    await sendEmail(
+      user.email,
+      'Room Assigned Successfully',
+      `Hi ${user.name}, you have been assigned Room ${room.number} (${room.type}).`
+    );
+
+    // ✅ SMS notification
+    if (user.phone && user.phone.length >= 10) {
+      await sendSms(
+        user.phone,
+        `Room ${room.number} assigned. Welcome to the hostel!`
+      );
+    }
+
+    res.json({ message: 'Room assigned and notifications sent', user });
   } catch (err) {
     console.error('Assign room error:', err);
     res.status(500).json({ message: 'Failed to assign room', error: err.message });
   }
 };
 
-// ✅ Auto Assign Room Based on Preference
+// ✅ Auto assign room (if preference logic used)
 exports.autoAssignRoom = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -153,7 +153,6 @@ exports.autoAssignRoom = async (req, res) => {
     }
 
     const rooms = await Room.find({ type: user.roomPreference });
-
     for (const room of rooms) {
       if (room.currentOccupancy < room.capacity) {
         user.assignedRoom = room._id;
@@ -178,7 +177,7 @@ exports.autoAssignRoom = async (req, res) => {
   }
 };
 
-// ✅ Manual Check-In
+// ✅ Manual check-in
 exports.checkIn = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, { checkedIn: true }, { new: true });
@@ -189,7 +188,7 @@ exports.checkIn = async (req, res) => {
   }
 };
 
-// ✅ Manual Check-Out
+// ✅ Manual check-out
 exports.checkOut = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -213,7 +212,7 @@ exports.checkOut = async (req, res) => {
   }
 };
 
-// ✅ Optional: Recalculate Room Occupancy (admin utility)
+// ✅ Admin tool to recalculate room occupancy
 exports.recalculateRoomOccupancy = async (req, res) => {
   try {
     const rooms = await Room.find();
