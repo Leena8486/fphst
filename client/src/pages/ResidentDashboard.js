@@ -7,6 +7,7 @@ const ResidentDashboard = () => {
   const [notifications, setNotifications] = useState([]);
 
   const handleLogout = () => {
+    localStorage.removeItem('token'); // ✅ Clear token
     alert('Logged out! Redirecting to login page...');
     navigate('/login');
   };
@@ -32,26 +33,24 @@ const ResidentDashboard = () => {
     },
   ];
 
-  // ✅ Fetch notifications
   useEffect(() => {
     const fetchNotifications = async () => {
+      const token = localStorage.getItem('token');
+      console.log('📦 Token:', token);
+
+      if (!token || token === 'null') {
+        console.warn('⚠️ No valid token found. Aborting fetch.');
+        return;
+      }
+
       try {
-        const token = localStorage.getItem('token');
-        console.log('📦 Token:', token);
-
-        if (!token) {
-          console.warn('⚠️ No token found in localStorage.');
-          return;
-        }
-
-        // ✅ Fetch current user info
+        // 🔐 Verify user (optional)
         const userRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         console.log('👤 Logged in user ID:', userRes.data._id);
 
-        // ✅ Fetch notifications
+        // 🔔 Get notifications
         const notifRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
         });
