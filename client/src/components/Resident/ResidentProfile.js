@@ -136,11 +136,10 @@ const ResidentProfile = () => {
               <label className="block font-semibold text-indigo-700 mb-1">Room</label>
               <input
                 type="text"
-                name="room"
                 value={form.room}
-                onChange={handleChange}
-                disabled={!editMode}
-                className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
+                readOnly
+                disabled
+                className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600 cursor-not-allowed"
               />
             </div>
 
