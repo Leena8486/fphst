@@ -29,6 +29,7 @@ const ResidentProfile = () => {
         setProfile(res.data);
         setForm({
           name: res.data.name,
+          email: res.data.email,
           phone: res.data.phone || '',
           room: res.data.assignedRoom?.number || '',
         });
@@ -111,6 +112,18 @@ const ResidentProfile = () => {
             </div>
 
             <div>
+              <label className="block font-semibold text-indigo-700 mb-1">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                disabled={!editMode}
+                className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
+              />
+            </div>
+
+            <div>
               <label className="block font-semibold text-indigo-700 mb-1">Phone</label>
               <input
                 type="text"
@@ -119,16 +132,6 @@ const ResidentProfile = () => {
                 onChange={handleChange}
                 disabled={!editMode}
                 className={`w-full border px-4 py-2 rounded ${editMode ? 'bg-white' : 'bg-gray-100'}`}
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-indigo-700 mb-1">Email</label>
-              <input
-                type="text"
-                value={profile.email}
-                disabled
-                className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-600"
               />
             </div>
 
@@ -175,6 +178,7 @@ const ResidentProfile = () => {
                     setEditMode(false);
                     setForm({
                       name: profile.name,
+                      email: profile.email,
                       phone: profile.phone || '',
                       room: profile.assignedRoom?.number || '',
                     });
