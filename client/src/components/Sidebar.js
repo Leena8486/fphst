@@ -1,7 +1,8 @@
+// Sidebar.js
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
 export default function Sidebar({ role }) {
@@ -10,13 +11,14 @@ export default function Sidebar({ role }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/api/auth/logout', {}, { withCredentials: true });
+      await axios.post('/api/auth/logout', {}, { withCredentials: true }); // ✅ Backend logout call
+      localStorage.removeItem('token'); // Optional, in case you use localStorage
       setUser(null);
       toast.success('Logged out successfully');
       navigate('/login');
-    } catch (err) {
+    } catch (error) {
+      console.error('Logout error:', error);
       toast.error('Logout failed');
-      console.error('Logout error:', err);
     }
   };
 
@@ -50,7 +52,7 @@ export default function Sidebar({ role }) {
             <span role="img" aria-label="staff">🛠</span> Staff Panel
           </Link>
 
-          <Link to="/login" className={linkClasses}>
+          <Link to="/resident" className={linkClasses}>
             <span role="img" aria-label="resident">👤</span> Resident Panel
           </Link>
         </nav>

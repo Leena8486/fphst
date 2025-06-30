@@ -1,3 +1,4 @@
+// ManageUsers.js
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -49,8 +50,17 @@ export default function ManageUsers() {
       await axios.put(`${API_BASE}/admin/users/${userId}/assign-room`, { roomId }, { withCredentials: true });
       toast.success('Room assigned');
       fetchUsers();
-    } catch {
-      toast.error('Failed to assign room');
+    } catch (error) {
+      const message = error.response?.data?.message;
+      if (message === 'Room is fully occupied') {
+        toast.error('⚠️ Room capacity is full. Please select another room.');
+      } else if (message === 'Room not found') {
+        toast.error('🚫 Room not found.');
+      } else if (message === 'User not found') {
+        toast.error('🚫 User not found.');
+      } else {
+        toast.error('❌ Failed to assign room');
+      }
     }
   };
 
@@ -230,60 +240,60 @@ export default function ManageUsers() {
             {editingUser ? 'Edit User' : 'Add User'}
           </Dialog.Title>
           <div className="space-y-3">
-  <input
-    type="text"
-    name="name"
-    autoComplete="name"
-    placeholder="Name"
-    className="w-full border px-3 py-2 rounded"
-    value={formData.name}
-    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-  />
+            <input
+              type="text"
+              name="name"
+              autoComplete="name"
+              placeholder="Name"
+              className="w-full border px-3 py-2 rounded"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
 
-  <input
-    type="email"
-    name="email"
-    autoComplete="email"
-    placeholder="Email"
-    className="w-full border px-3 py-2 rounded"
-    value={formData.email}
-    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-  />
+            <input
+              type="email"
+              name="email"
+              autoComplete="email"
+              placeholder="Email"
+              className="w-full border px-3 py-2 rounded"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
 
-  <input
-    type="tel"
-    name="phoneNumber"
-    autoComplete="tel-national"
-    placeholder="Enter phone number with +91"
-    className="w-full border px-3 py-2 rounded"
-    pattern="\+91\d{10}"
-    value={formData.phone}
-    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-  />
+            <input
+              type="tel"
+              name="phoneNumber"
+              autoComplete="tel-national"
+              placeholder="Enter phone number with +91"
+              className="w-full border px-3 py-2 rounded"
+              pattern="\+91\d{10}"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            />
 
-  <select
-    name="role"
-    autoComplete="off"
-    className="w-full border px-3 py-2 rounded"
-    value={formData.role}
-    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-  >
-    <option value="Admin">Admin</option>
-    <option value="Staff">Staff</option>
-    <option value="Resident">Resident</option>
-  </select>
+            <select
+              name="role"
+              autoComplete="off"
+              className="w-full border px-3 py-2 rounded"
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            >
+              <option value="Admin">Admin</option>
+              <option value="Staff">Staff</option>
+              <option value="Resident">Resident</option>
+            </select>
 
-  <input
-    type="password"
-    name="password"
-    autoComplete="new-password"
-    placeholder="Password"
-    className="w-full border px-3 py-2 rounded"
-    value={formData.password}
-    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-  />
-</div>
- <div className="flex justify-end gap-2 mt-4">
+            <input
+              type="password"
+              name="password"
+              autoComplete="new-password"
+              placeholder="Password"
+              className="w-full border px-3 py-2 rounded"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
             <button
               onClick={() => setShowModal(false)}
               className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
