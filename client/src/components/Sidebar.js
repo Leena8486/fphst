@@ -1,4 +1,3 @@
-// Sidebar.js
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -11,8 +10,12 @@ export default function Sidebar({ role }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/api/auth/logout', {}, { withCredentials: true }); // ✅ Backend logout call
-      localStorage.removeItem('token'); // Optional, in case you use localStorage
+      await axios.post(
+        'https://fphst.onrender.com/api/auth/logout',
+        {},
+        { withCredentials: true }
+      );
+      localStorage.removeItem('token'); // Optional if you're not using localStorage
       setUser(null);
       toast.success('Logged out successfully');
       navigate('/login');
